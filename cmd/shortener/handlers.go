@@ -6,20 +6,20 @@ import (
 	"net/http"
 )
 
-var Urls = make(map[string]string)
-
-func MainHandler(writer http.ResponseWriter, request *http.Request) {
-	if request.Method == http.MethodPost {
-		PostHandler(writer, request)
-	} else if request.Method == http.MethodGet {
-		GetHandler(writer, request)
-	} else {
-		http.Error(writer, "Invalid request", http.StatusBadRequest)
-		return
+func MainHandler(storage Repository) http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		if request.Method == http.MethodPost {
+			PostHandler(writer, request, storage)
+		} else if request.Method == http.MethodGet {
+			GetHandler(writer, request, storage)
+		} else {
+			http.Error(writer, "Invalid request", http.StatusBadRequest)
+			return
+		}
 	}
 }
 
-func PostHandler(writer http.ResponseWriter, request *http.Request) {
+func PostHandler(writer http.ResponseWriter, request *http.Request, storage Repository) {
 	// check request
 	// parse body
 	// generate key
@@ -37,16 +37,16 @@ func PostHandler(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	key := GenerateKey()
-	Urls[key] = string(body)
+	key := GenerateKey(storage)
+	storage.Add(key, string(body))
 	writer.WriteHeader(http.StatusCreated)
 	writer.Write([]byte(fmt.Sprintf("%s%s", Host, key)))
 }
 
-func GetHandler(writer http.ResponseWriter, request *http.Request) {
+func GetHandler(writer http.ResponseWriter, request *http.Request, storage Repository) {
 	id := request.URL.Path[1:]
-	url := Urls[id]
-	if url == "" {
+	url, ok := storage.Get(id)
+	if !ok {
 		http.Error(writer, "Invalid request", http.StatusBadRequest)
 		return
 	}
