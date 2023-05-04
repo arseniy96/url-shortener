@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/go-chi/chi/v5"
 	"math/rand"
 	"net/http"
 	"time"
@@ -20,7 +21,11 @@ func main() {
 
 func run() error {
 	storage := NewStorage()
-	mux := http.NewServeMux()
-	mux.HandleFunc(`/`, MainHandler(storage))
-	return http.ListenAndServe(`:8080`, mux)
+	server := NewServer(storage)
+
+	router := chi.NewRouter()
+	router.Post("/", server.CreateLink)
+	router.Get("/{url_id}", server.ResolveLink)
+
+	return http.ListenAndServe(`:8080`, router)
 }
