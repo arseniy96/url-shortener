@@ -1,4 +1,4 @@
-package main
+package storage
 
 type Storage struct {
 	Urls map[string]string

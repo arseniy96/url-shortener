@@ -1,13 +1,14 @@
-package main
+package utils
 
 import (
+	"github.com/arseniy96/url-shortener/cmd/storage"
 	"math/rand"
 )
 
-func NewGenerator(runes []rune, storage Repository) Generator {
+func NewGenerator(runes []rune, store storage.Repository) Generator {
 	return Generator{
 		letters: runes,
-		storage: storage,
+		storage: store,
 	}
 }
 
@@ -17,7 +18,7 @@ type Generate interface {
 
 type Generator struct {
 	letters []rune
-	storage Repository
+	storage storage.Repository
 }
 
 func (g Generator) CreateKey() string {

@@ -1,6 +1,7 @@
-package main
+package utils
 
 import (
+	"github.com/arseniy96/url-shortener/cmd/storage"
 	"github.com/stretchr/testify/assert"
 	"regexp"
 	"testing"
@@ -9,7 +10,7 @@ import (
 func TestGenerator_CreateKey(t *testing.T) {
 	type fields struct {
 		letters []rune
-		storage Repository
+		storage storage.Repository
 	}
 	tests := []struct {
 		name       string
@@ -33,5 +34,27 @@ func TestGenerator_CreateKey(t *testing.T) {
 			}
 			assert.Regexp(t, regexp.MustCompile(tt.wantRegexp), g.CreateKey(), "CreateKey()")
 		})
+	}
+}
+
+type TestStorage struct {
+	Urls map[string]string
+}
+
+func NewTestStorage() *TestStorage {
+	return &TestStorage{
+		Urls: make(map[string]string),
+	}
+}
+
+func (s *TestStorage) Add(_, _ string) {
+	s.Urls["test"] = "Test"
+}
+
+func (s *TestStorage) Get(key string) (string, bool) {
+	if key == "test" {
+		return "test", true
+	} else {
+		return "", false
 	}
 }

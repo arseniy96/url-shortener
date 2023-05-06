@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"github.com/arseniy96/url-shortener/cmd/config"
+	"github.com/arseniy96/url-shortener/cmd/storage"
+	"github.com/arseniy96/url-shortener/cmd/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -12,8 +15,9 @@ import (
 
 func TestServer_ResolveLink(t *testing.T) {
 	type fields struct {
-		storage   Repository
-		generator Generate
+		storage   storage.Repository
+		generator utils.Generate
+		config    *config.Options
 	}
 	type want struct {
 		expectedCode int
@@ -30,6 +34,7 @@ func TestServer_ResolveLink(t *testing.T) {
 			fields: fields{
 				storage:   NewTestStorage(),
 				generator: NewTestGenerator(),
+				config:    config.SetConfig("localhost:8080", "http://localhost:8080"),
 			},
 			want: want{
 				expectedCode: 400,
@@ -41,6 +46,7 @@ func TestServer_ResolveLink(t *testing.T) {
 			fields: fields{
 				storage:   NewTestStorage(),
 				generator: NewTestGenerator(),
+				config:    config.SetConfig("localhost:8080", "http://localhost:8080"),
 			},
 			want: want{
 				expectedCode: 307,
@@ -59,6 +65,7 @@ func TestServer_ResolveLink(t *testing.T) {
 			s := Server{
 				storage:   tt.fields.storage,
 				generator: tt.fields.generator,
+				config:    tt.fields.config,
 			}
 
 			s.ResolveLink(writer, request)
@@ -70,8 +77,9 @@ func TestServer_ResolveLink(t *testing.T) {
 
 func TestServer_CreateLink(t *testing.T) {
 	type fields struct {
-		storage   Repository
-		generator Generate
+		storage   storage.Repository
+		generator utils.Generate
+		config    *config.Options
 	}
 	type want struct {
 		expectedResponse string
@@ -89,6 +97,7 @@ func TestServer_CreateLink(t *testing.T) {
 			fields: fields{
 				storage:   NewTestStorage(),
 				generator: NewTestGenerator(),
+				config:    config.SetConfig("localhost:8080", "http://localhost:8080"),
 			},
 			want: want{
 				expectedCode:     http.StatusBadRequest,
@@ -101,6 +110,7 @@ func TestServer_CreateLink(t *testing.T) {
 			fields: fields{
 				storage:   NewTestStorage(),
 				generator: NewTestGenerator(),
+				config:    config.SetConfig("localhost:8080", "http://localhost:8080"),
 			},
 			want: want{
 				expectedCode:     http.StatusCreated,
@@ -116,6 +126,7 @@ func TestServer_CreateLink(t *testing.T) {
 			s := Server{
 				storage:   tt.fields.storage,
 				generator: tt.fields.generator,
+				config:    tt.fields.config,
 			}
 
 			s.CreateLink(writer, request)
