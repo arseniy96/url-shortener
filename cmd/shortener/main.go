@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"math/rand"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -17,6 +18,13 @@ func init() {
 	rand.NewSource(time.Now().UnixNano())
 	host = flag.String("a", "localhost:8080", "server host with port")
 	resolveHost = flag.String("b", "http://localhost:8080", "resolve link address")
+
+	if envServerAddr := os.Getenv("SERVER_ADDRESS"); envServerAddr != "" {
+		host = &envServerAddr
+	}
+	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
+		resolveHost = &envBaseURL
+	}
 }
 
 func main() {
