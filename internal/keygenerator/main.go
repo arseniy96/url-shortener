@@ -1,24 +1,25 @@
-package utils
+package keygenerator
 
 import (
-	"github.com/arseniy96/url-shortener/cmd/storage"
 	"math/rand"
 )
 
-func NewGenerator(runes []rune, store storage.Repository) Generator {
+type Repository interface {
+	Get(string) (string, bool)
+}
+
+func NewGenerator(store Repository) Generator {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
 	return Generator{
-		letters: runes,
+		letters: letters,
 		storage: store,
 	}
 }
 
-type Generate interface {
-	CreateKey() string
-}
-
 type Generator struct {
 	letters []rune
-	storage storage.Repository
+	storage Repository
 }
 
 func (g Generator) CreateKey() string {

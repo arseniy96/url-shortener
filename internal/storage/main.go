@@ -4,11 +4,6 @@ type Storage struct {
 	Urls map[string]string
 }
 
-type Repository interface {
-	Add(string, string)
-	Get(string) (string, bool)
-}
-
 func NewStorage() *Storage {
 	return &Storage{
 		Urls: make(map[string]string),

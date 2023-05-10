@@ -1,7 +1,6 @@
-package utils
+package keygenerator
 
 import (
-	"github.com/arseniy96/url-shortener/cmd/storage"
 	"github.com/stretchr/testify/assert"
 	"regexp"
 	"testing"
@@ -10,7 +9,7 @@ import (
 func TestGenerator_CreateKey(t *testing.T) {
 	type fields struct {
 		letters []rune
-		storage storage.Repository
+		storage Repository
 	}
 	tests := []struct {
 		name       string

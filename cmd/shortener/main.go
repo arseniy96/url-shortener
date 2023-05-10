@@ -1,35 +1,13 @@
 package main
 
 import (
-	"flag"
-	"github.com/arseniy96/url-shortener/cmd/storage"
-	"github.com/go-chi/chi/v5"
-	"math/rand"
+	"github.com/arseniy96/url-shortener/internal/router"
+	"github.com/arseniy96/url-shortener/internal/server"
+	"github.com/arseniy96/url-shortener/internal/storage"
 	"net/http"
-	"os"
-	"time"
 )
 
-// var serverFlags = flag.NewFlagSet("server", flag.ExitOnError)
-var host *string
-var resolveHost *string
-
-func init() {
-	rand.NewSource(time.Now().UnixNano())
-	host = flag.String("a", "localhost:8080", "server host with port")
-	resolveHost = flag.String("b", "http://localhost:8080", "resolve link address")
-
-	if envServerAddr := os.Getenv("SERVER_ADDRESS"); envServerAddr != "" {
-		host = &envServerAddr
-	}
-	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
-		resolveHost = &envBaseURL
-	}
-}
-
 func main() {
-	flag.Parse()
-
 	if err := run(); err != nil {
 		panic(err)
 	}
@@ -37,11 +15,8 @@ func main() {
 
 func run() error {
 	serverStorage := storage.NewStorage()
-	server := NewServer(serverStorage)
+	s := server.NewServer(serverStorage)
+	r := router.NewRouter(s)
 
-	router := chi.NewRouter()
-	router.Post("/", server.CreateLink)
-	router.Get("/{url_id}", server.ResolveLink)
-
-	return http.ListenAndServe(server.config.Host, router)
+	return http.ListenAndServe(s.Config.Host, r)
 }
