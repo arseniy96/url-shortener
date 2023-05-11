@@ -15,6 +15,6 @@ func (s *Storage) Add(key, value string) {
 }
 
 func (s *Storage) Get(key string) (string, bool) {
-	value := s.Urls[key]
-	return value, value != ""
+	value, found := s.Urls[key]
+	return value, found
 }
