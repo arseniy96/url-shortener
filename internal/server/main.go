@@ -1,10 +1,12 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/arseniy96/url-shortener/internal/config"
 	"github.com/arseniy96/url-shortener/internal/keygenerator"
 	"github.com/arseniy96/url-shortener/internal/logger"
+	"github.com/arseniy96/url-shortener/internal/models"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 	"io"
@@ -90,4 +92,56 @@ func (s Server) ResolveLink(writer http.ResponseWriter, request *http.Request) {
 	logger.Log.Debug("Stored URL", zap.String("url", url))
 	writer.Header().Set("Location", url)
 	writer.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func (s Server) APICreateLink(writer http.ResponseWriter, request *http.Request) {
+	var body models.RequestCreateLink
+	decoder := json.NewDecoder(request.Body)
+	if err := decoder.Decode(&body); err != nil {
+		logger.Log.Error(
+			"Invalid Request",
+			zap.Error(err),
+		)
+		http.Error(writer, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	url := body.URL
+
+	logger.Log.Debug(
+		"Parsed URL",
+		zap.String("URL", url),
+	)
+
+	if len(url) == 0 {
+		logger.Log.Error(
+			"Invalid URL",
+		)
+		http.Error(writer, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	key := s.generator.CreateKey()
+	s.storage.Add(key, url)
+
+	logger.Log.Debug(
+		"Key was generated",
+		zap.String("key", key),
+	)
+
+	resp := models.ResponseCreateLink{
+		Result: fmt.Sprintf("%s/%s", s.Config.ResolveHost, key),
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusCreated)
+
+	encoder := json.NewEncoder(writer)
+	if err := encoder.Encode(resp); err != nil {
+		logger.Log.Error(
+			"error encoding response",
+			zap.Error(err),
+		)
+		http.Error(writer, "Internal Backend Error", http.StatusBadRequest)
+		return
+	}
 }

@@ -135,6 +135,68 @@ func TestServer_CreateLink(t *testing.T) {
 	}
 }
 
+func TestServer_APICreateLink(t *testing.T) {
+	type fields struct {
+		storage   Repository
+		generator Generate
+		config    *config.Options
+	}
+	type want struct {
+		expectedResponse string
+		expectedCode     int
+	}
+	tests := []struct {
+		name   string
+		body   string
+		fields fields
+		want   want
+	}{
+		{
+			name: "Invalid Body",
+			body: "{}",
+			fields: fields{
+				storage:   NewTestStorage(),
+				generator: NewTestGenerator(),
+				config:    config.SetConfig(),
+			},
+			want: want{
+				expectedCode:     http.StatusBadRequest,
+				expectedResponse: "Invalid request\n",
+			},
+		},
+		{
+			name: "Valid request",
+			body: `{ "url": "https://ya.ru" }`,
+			fields: fields{
+				storage:   NewTestStorage(),
+				generator: NewTestGenerator(),
+				config:    config.SetConfig(),
+			},
+			want: want{
+				expectedCode:     http.StatusCreated,
+				expectedResponse: "{\"result\":\"http://localhost:8080/test\"}\n",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			writer := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(tt.body))
+
+			s := Server{
+				storage:   tt.fields.storage,
+				generator: tt.fields.generator,
+				Config:    tt.fields.config,
+			}
+
+			s.APICreateLink(writer, request)
+
+			assert.Equal(t, tt.want.expectedCode, writer.Code, "Код ответа не совпадает с ожидаемым")
+			assert.Equal(t, tt.want.expectedResponse, writer.Body.String(), "Тело ответа не совпадает с ожидаемым")
+		})
+	}
+}
+
 type TestStorage struct {
 	Urls map[string]string
 }

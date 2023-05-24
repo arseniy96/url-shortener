@@ -10,6 +10,7 @@ func NewRouter(server server.Server) chi.Router {
 	router := chi.NewRouter()
 	router.Post("/", logger.RequestWithLog(server.CreateLink))
 	router.Get("/{url_id}", logger.RequestWithLog(server.ResolveLink))
+	router.Post("/api/shorten", logger.RequestWithLog(server.APICreateLink))
 
 	return router
 }
