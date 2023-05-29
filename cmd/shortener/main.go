@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/arseniy96/url-shortener/internal/config"
 	"github.com/arseniy96/url-shortener/internal/logger"
 	"github.com/arseniy96/url-shortener/internal/router"
 	"github.com/arseniy96/url-shortener/internal/server"
@@ -16,8 +17,16 @@ func main() {
 }
 
 func run() error {
-	serverStorage := storage.NewStorage()
-	s := server.NewServer(serverStorage)
+	appConfig := config.SetConfig()
+
+	filename := appConfig.Filename
+	serverStorage, postback, err := storage.NewStorage(filename)
+	if err != nil {
+		return err
+	}
+	defer postback()
+
+	s := server.NewServer(serverStorage, appConfig)
 
 	if err := logger.Initialize(s.Config.LoggingLevel); err != nil {
 		return err

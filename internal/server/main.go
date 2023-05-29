@@ -28,11 +28,11 @@ type Server struct {
 	Config    *config.Options
 }
 
-func NewServer(s Repository) Server {
+func NewServer(s Repository, c *config.Options) Server {
 	return Server{
 		storage:   s,
 		generator: keygenerator.NewGenerator(s),
-		Config:    config.SetConfig(),
+		Config:    c,
 	}
 }
 
