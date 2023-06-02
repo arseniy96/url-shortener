@@ -1,4 +1,4 @@
-package gzip
+package middlewares
 
 import (
 	"compress/gzip"
@@ -17,9 +17,7 @@ func (w *gzipWriter) Write(b []byte) (int, error) {
 }
 
 func (w *gzipWriter) WriteHeader(statusCode int) {
-	if statusCode < 300 {
-		w.Writer.Header().Set("Content-Encoding", "gzip")
-	}
+	w.Writer.Header().Set("Content-Encoding", "gzip")
 	w.Writer.WriteHeader(statusCode)
 }
 
@@ -66,7 +64,7 @@ func newGzipReader(reader io.ReadCloser) (*gzipReader, error) {
 	}, nil
 }
 
-func Middleware(next http.Handler) http.Handler {
+func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		currentWriter := w
 

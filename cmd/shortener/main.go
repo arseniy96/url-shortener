@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/arseniy96/url-shortener/internal/config"
+	"github.com/arseniy96/url-shortener/internal/handlers"
 	"github.com/arseniy96/url-shortener/internal/logger"
 	"github.com/arseniy96/url-shortener/internal/router"
-	"github.com/arseniy96/url-shortener/internal/server"
 	"github.com/arseniy96/url-shortener/internal/storage"
 	"go.uber.org/zap"
 	"net/http"
@@ -17,23 +17,25 @@ func main() {
 }
 
 func run() error {
-	appConfig := config.SetConfig()
+	appConfig := config.InitConfig()
 
-	filename := appConfig.Filename
-	serverStorage, postback, err := storage.NewStorage(filename)
+	if err := logger.Initialize(appConfig.LoggingLevel); err != nil {
+		return err
+	}
+
+	serverStorage, err := storage.NewStorage(appConfig.Filename)
 	if err != nil {
 		return err
 	}
-	defer postback()
-
-	s := server.NewServer(serverStorage, appConfig)
-
-	if err := logger.Initialize(s.Config.LoggingLevel); err != nil {
-		return err
+	if appConfig.Filename != "" {
+		if err := serverStorage.Restore(); err != nil {
+			logger.Log.Error("Restore storage error", zap.Error(err))
+		}
 	}
 
+	s := handlers.NewServer(serverStorage, appConfig)
 	r := router.NewRouter(s)
 
-	logger.Log.Info("Running server", zap.String("address", s.Config.Host))
+	logger.Log.Infow("Running server", "address", s.Config.Host)
 	return http.ListenAndServe(s.Config.Host, r)
 }

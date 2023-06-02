@@ -10,9 +10,9 @@ import (
 )
 
 type Storage struct {
-	Links    []Record
-	filename string
-	producer *Producer
+	Links      map[string]string
+	filename   string
+	dataWriter *DataWriter
 }
 
 type Record struct {
@@ -21,60 +21,46 @@ type Record struct {
 	OriginalURL string    `json:"original_url"`
 }
 
-type Producer struct {
+type DataWriter struct {
 	file    *os.File
 	encoder *json.Encoder
 }
 
-func NewProducer(filename string) (*Producer, error) {
+func NewDataWriter(filename string) (*DataWriter, error) {
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		logger.Log.Error("open file error", zap.Error(err))
 		return nil, err
 	}
 
-	return &Producer{
+	return &DataWriter{
 		file:    file,
 		encoder: json.NewEncoder(file),
 	}, nil
 }
 
-func (p *Producer) WriteData(record *Record) error {
+func (p *DataWriter) WriteData(record *Record) error {
 	return p.encoder.Encode(record)
 }
 
-func (p *Producer) Close() error {
+func (p *DataWriter) Close() error {
 	return p.file.Close()
 }
 
-func NewStorage(filename string) (*Storage, func() error, error) {
-	var producer *Producer
+func NewStorage(filename string) (*Storage, error) {
+	var dataWriter *DataWriter
 
 	store := Storage{
-		Links:    []Record{},
-		filename: filename,
-		producer: producer,
+		Links:      make(map[string]string),
+		filename:   filename,
+		dataWriter: dataWriter,
 	}
 
-	if filename != "" {
-		err := store.Restore(filename)
-		if err != nil {
-			logger.Log.Error("restore data error", zap.Error(err))
-			return &store, store.Close, nil
-		}
-
-		producer, err = NewProducer(filename)
-		if err != nil {
-			return nil, nil, err
-		}
-		store.producer = producer
-	}
-
-	return &store, store.Close, nil
+	return &store, nil
 }
 
-func (s *Storage) Restore(filename string) error {
-	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
+func (s *Storage) Restore() error {
+	file, err := os.OpenFile(s.filename, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
@@ -88,9 +74,10 @@ func (s *Storage) Restore(filename string) error {
 		err = json.Unmarshal([]byte(line), &record)
 		if err != nil {
 			logger.Log.Error("data decoding problem", zap.Error(err))
+			continue
 		}
 
-		s.Links = append(s.Links, record)
+		s.Links[record.ShortULR] = record.OriginalURL
 	}
 
 	return nil
@@ -103,23 +90,21 @@ func (s *Storage) Add(key, value string) {
 		ShortULR:    key,
 		OriginalURL: value,
 	}
-	s.Links = append(s.Links, record)
 
 	if s.filename != "" {
-		s.producer.WriteData(&record)
+		dataWriter, err := NewDataWriter(s.filename)
+		if err != nil {
+			logger.Log.Error("Open File error", zap.Error(err))
+		}
+		s.dataWriter = dataWriter
+		defer s.dataWriter.Close()
+
+		s.dataWriter.WriteData(&record)
 	}
+	s.Links[key] = value
 }
 
 func (s *Storage) Get(key string) (string, bool) {
-	for _, link := range s.Links {
-		if link.ShortULR == key {
-			return link.OriginalURL, true
-		}
-	}
-
-	return "", false
-}
-
-func (s *Storage) Close() error {
-	return s.producer.Close()
+	value, found := s.Links[key]
+	return value, found
 }
