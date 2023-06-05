@@ -2,17 +2,28 @@ package storage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/arseniy96/url-shortener/internal/logger"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"os"
+	"reflect"
+	"time"
 )
+
+type DatabaseInterface interface {
+	FindRecord(ctx context.Context, value string) (Record, error)
+	HealthCheck() error
+	Close() error
+}
 
 type Storage struct {
 	Links      map[string]string
 	filename   string
 	dataWriter *DataWriter
+	database   DatabaseInterface
 }
 
 type Record struct {
@@ -39,21 +50,31 @@ func NewDataWriter(filename string) (*DataWriter, error) {
 	}, nil
 }
 
-func (p *DataWriter) WriteData(record *Record) error {
-	return p.encoder.Encode(record)
+func (w *DataWriter) WriteData(record *Record) error {
+	return w.encoder.Encode(record)
 }
 
-func (p *DataWriter) Close() error {
-	return p.file.Close()
+func (w *DataWriter) Close() error {
+	return w.file.Close()
 }
 
-func NewStorage(filename string) (*Storage, error) {
+func NewStorage(filename, connectionData string) (*Storage, error) {
 	var dataWriter *DataWriter
+	var db *Database
+	var err error
+
+	if connectionData != "" {
+		db, err = NewDatabase(connectionData)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	store := Storage{
 		Links:      make(map[string]string),
 		filename:   filename,
 		dataWriter: dataWriter,
+		database:   db,
 	}
 
 	return &store, nil
@@ -105,6 +126,29 @@ func (s *Storage) Add(key, value string) {
 }
 
 func (s *Storage) Get(key string) (string, bool) {
-	value, found := s.Links[key]
-	return value, found
+	if err := s.HealthCheck(); err != nil {
+		logger.Log.Error("database connection error", zap.Error(err))
+		value, found := s.Links[key]
+		return value, found
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		defer cancel()
+		rec, err := s.database.FindRecord(ctx, key)
+		if err != nil {
+			logger.Log.Error("database find error", zap.Error(err))
+			return "", false
+		}
+		return rec.OriginalURL, true
+	}
+}
+
+func (s *Storage) HealthCheck() error {
+	if reflect.ValueOf(s.database).IsNil() {
+		return fmt.Errorf("database is null")
+	}
+	return s.database.HealthCheck()
+}
+
+func (s *Storage) CloseConnection() error {
+	return s.database.Close()
 }

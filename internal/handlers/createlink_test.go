@@ -167,6 +167,10 @@ func (s *TestStorage) Get(key string) (string, bool) {
 	}
 }
 
+func (s *TestStorage) HealthCheck() error {
+	return nil
+}
+
 type TestGenerator struct{}
 
 func NewTestGenerator() *TestGenerator {
