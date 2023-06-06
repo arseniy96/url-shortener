@@ -17,6 +17,7 @@ type DatabaseInterface interface {
 	FindRecord(ctx context.Context, value string) (Record, error)
 	HealthCheck() error
 	Close() error
+	Restore([]Record) error
 }
 
 type Storage struct {
@@ -87,6 +88,8 @@ func (s *Storage) Restore() error {
 	}
 	defer file.Close()
 
+	var records []Record
+
 	fileScanner := bufio.NewScanner(file)
 
 	for fileScanner.Scan() {
@@ -98,7 +101,15 @@ func (s *Storage) Restore() error {
 			continue
 		}
 
+		records = append(records, record)
 		s.Links[record.ShortULR] = record.OriginalURL
+	}
+
+	if err := s.HealthCheck(); err == nil {
+		err := s.database.Restore(records)
+		if err != nil {
+			logger.Log.Error("database restore problem", zap.Error(err))
+		}
 	}
 
 	return nil

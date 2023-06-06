@@ -76,3 +76,17 @@ func (mr *MockDatabaseInterfaceMockRecorder) HealthCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockDatabaseInterface)(nil).HealthCheck))
 }
+
+// Restore mocks base method.
+func (m *MockDatabaseInterface) Restore(arg0 []Record) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Restore", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Restore indicates an expected call of Restore.
+func (mr *MockDatabaseInterfaceMockRecorder) Restore(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockDatabaseInterface)(nil).Restore), arg0)
+}
