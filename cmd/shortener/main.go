@@ -1,13 +1,15 @@
 package main
 
 import (
+	"net/http"
+
+	"go.uber.org/zap"
+
 	"github.com/arseniy96/url-shortener/internal/config"
 	"github.com/arseniy96/url-shortener/internal/handlers"
 	"github.com/arseniy96/url-shortener/internal/logger"
 	"github.com/arseniy96/url-shortener/internal/router"
 	"github.com/arseniy96/url-shortener/internal/storage"
-	"go.uber.org/zap"
-	"net/http"
 )
 
 func main() {

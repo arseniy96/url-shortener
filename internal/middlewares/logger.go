@@ -1,9 +1,10 @@
 package middlewares
 
 import (
-	"github.com/arseniy96/url-shortener/internal/logger"
 	"net/http"
 	"time"
+
+	"github.com/arseniy96/url-shortener/internal/logger"
 )
 
 type responseData struct {

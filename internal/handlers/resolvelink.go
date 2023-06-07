@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/go-chi/chi/v5"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func (s *Server) ResolveLink(writer http.ResponseWriter, request *http.Request) {

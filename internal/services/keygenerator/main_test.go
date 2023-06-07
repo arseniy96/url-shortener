@@ -1,9 +1,10 @@
 package keygenerator
 
 import (
-	"github.com/stretchr/testify/assert"
 	"regexp"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerator_CreateKey(t *testing.T) {

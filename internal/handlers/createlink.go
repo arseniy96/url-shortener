@@ -3,9 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/arseniy96/url-shortener/internal/models"
 	"io"
 	"net/http"
+
+	"github.com/arseniy96/url-shortener/internal/models"
 )
 
 func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {

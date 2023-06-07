@@ -5,18 +5,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/arseniy96/url-shortener/internal/logger"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"os"
 	"reflect"
 	"time"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+
+	"github.com/arseniy96/url-shortener/internal/logger"
+)
+
+const (
+	MemoryMode = iota
+	FileMode
+	DBMode
 )
 
 type DatabaseInterface interface {
 	FindRecord(ctx context.Context, value string) (Record, error)
 	HealthCheck() error
 	Close() error
+	Restore([]Record) error
+	SaveRecord(context.Context, *Record) error
 }
 
 type Storage struct {
@@ -24,6 +34,7 @@ type Storage struct {
 	filename   string
 	dataWriter *DataWriter
 	database   DatabaseInterface
+	mode       int
 }
 
 type Record struct {
@@ -87,6 +98,8 @@ func (s *Storage) Restore() error {
 	}
 	defer file.Close()
 
+	var records []Record
+
 	fileScanner := bufio.NewScanner(file)
 
 	for fileScanner.Scan() {
@@ -98,7 +111,15 @@ func (s *Storage) Restore() error {
 			continue
 		}
 
+		records = append(records, record)
 		s.Links[record.ShortULR] = record.OriginalURL
+	}
+
+	if err := s.HealthCheck(); err == nil {
+		err := s.database.Restore(records)
+		if err != nil {
+			logger.Log.Error("database restore problem", zap.Error(err))
+		}
 	}
 
 	return nil
@@ -112,7 +133,14 @@ func (s *Storage) Add(key, value string) {
 		OriginalURL: value,
 	}
 
-	if s.filename != "" {
+	if err := s.HealthCheck(); err == nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		err := s.database.SaveRecord(ctx, &record)
+		if err != nil {
+			logger.Log.Error("save data to database error", zap.Error(err))
+		}
+	} else if s.filename != "" {
 		dataWriter, err := NewDataWriter(s.filename)
 		if err != nil {
 			logger.Log.Error("Open File error", zap.Error(err))
@@ -120,7 +148,10 @@ func (s *Storage) Add(key, value string) {
 		s.dataWriter = dataWriter
 		defer s.dataWriter.Close()
 
-		s.dataWriter.WriteData(&record)
+		err = s.dataWriter.WriteData(&record)
+		if err != nil {
+			logger.Log.Error(zap.Error(err))
+		}
 	}
 	s.Links[key] = value
 }

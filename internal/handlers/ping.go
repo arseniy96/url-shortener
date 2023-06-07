@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/arseniy96/url-shortener/internal/logger"
 	"net/http"
+
+	"github.com/arseniy96/url-shortener/internal/logger"
 )
 
 func (s *Server) Ping(writer http.ResponseWriter, request *http.Request) {
