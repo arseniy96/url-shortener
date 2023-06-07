@@ -5,12 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/arseniy96/url-shortener/internal/logger"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"os"
 	"reflect"
 	"time"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+
+	"github.com/arseniy96/url-shortener/internal/logger"
 )
 
 type DatabaseInterface interface {
@@ -131,7 +133,10 @@ func (s *Storage) Add(key, value string) {
 		s.dataWriter = dataWriter
 		defer s.dataWriter.Close()
 
-		s.dataWriter.WriteData(&record)
+		err = s.dataWriter.WriteData(&record)
+		if err != nil {
+			logger.Log.Error(zap.Error(err))
+		}
 	}
 	s.Links[key] = value
 }

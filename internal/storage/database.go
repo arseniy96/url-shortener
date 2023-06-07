@@ -3,9 +3,12 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"github.com/arseniy96/url-shortener/internal/logger"
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"time"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"go.uber.org/zap"
+
+	"github.com/arseniy96/url-shortener/internal/logger"
 )
 
 type Database struct {
@@ -80,9 +83,12 @@ func (db *Database) Restore(records []Record) error {
 		defer tx.Rollback()
 
 		for _, rec := range records {
-			tx.ExecContext(ctx,
+			_, err := tx.ExecContext(ctx,
 				`INSERT INTO urls (uuid, short_url, origin_url) VALUES($1, $2, $3)`,
 				rec.UUID, rec.ShortULR, rec.OriginalURL)
+			if err != nil {
+				logger.Log.Error("database insert error", zap.Error(err))
+			}
 		}
 
 		return tx.Commit()

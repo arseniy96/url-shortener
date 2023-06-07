@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"github.com/golang/mock/gomock"
 	"testing"
+
+	"github.com/golang/mock/gomock"
 )
 
 func TestStorage_Get(t *testing.T) {

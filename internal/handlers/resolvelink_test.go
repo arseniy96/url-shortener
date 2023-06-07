@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"context"
-	"github.com/arseniy96/url-shortener/internal/config"
-	"github.com/go-chi/chi/v5"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/arseniy96/url-shortener/internal/config"
 )
 
 func TestServer_ResolveLink(t *testing.T) {

@@ -1,12 +1,14 @@
 package handlers
 
 import (
-	"github.com/arseniy96/url-shortener/internal/config"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/arseniy96/url-shortener/internal/config"
 )
 
 func TestServer_CreateLink(t *testing.T) {
