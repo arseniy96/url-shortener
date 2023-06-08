@@ -31,10 +31,8 @@ func run() error {
 	}
 	defer serverStorage.CloseConnection()
 
-	if appConfig.Filename != "" {
-		if err := serverStorage.Restore(); err != nil {
-			logger.Log.Error("Restore storage error", zap.Error(err))
-		}
+	if err := serverStorage.Restore(); err != nil {
+		logger.Log.Error("Restore storage error", zap.Error(err))
 	}
 
 	s := handlers.NewServer(serverStorage, appConfig)

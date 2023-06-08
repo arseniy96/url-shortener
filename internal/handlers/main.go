@@ -9,6 +9,7 @@ type Repository interface {
 	Add(string, string)
 	Get(string) (string, bool)
 	HealthCheck() error
+	GetMode() int
 }
 
 type Generate interface {

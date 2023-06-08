@@ -13,13 +13,13 @@ func TestStorage_Get(t *testing.T) {
 	// создаём объект-заглушку
 	m := NewMockDatabaseInterface(ctrl)
 	m.EXPECT().FindRecord(gomock.Any(), "testS").Return(Record{OriginalURL: "http://test.ru"}, nil)
-	m.EXPECT().HealthCheck().Return(nil)
 
 	type fields struct {
 		Links      map[string]string
 		filename   string
 		dataWriter *DataWriter
 		database   DatabaseInterface
+		mode       int
 	}
 	type args struct {
 		key string
@@ -35,6 +35,7 @@ func TestStorage_Get(t *testing.T) {
 			name: "success Get from database",
 			fields: fields{
 				database: m,
+				mode:     2,
 			},
 			args:  args{key: "testS"},
 			want:  "http://test.ru",
@@ -48,6 +49,7 @@ func TestStorage_Get(t *testing.T) {
 				filename:   tt.fields.filename,
 				dataWriter: tt.fields.dataWriter,
 				database:   tt.fields.database,
+				mode:       tt.fields.mode,
 			}
 			got, got1 := s.Get(tt.args.key)
 			if got != tt.want {

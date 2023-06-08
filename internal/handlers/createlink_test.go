@@ -173,6 +173,10 @@ func (s *TestStorage) HealthCheck() error {
 	return nil
 }
 
+func (s *TestStorage) GetMode() int {
+	return 0
+}
+
 type TestGenerator struct{}
 
 func NewTestGenerator() *TestGenerator {

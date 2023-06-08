@@ -6,7 +6,6 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"go.uber.org/zap"
 
 	"github.com/arseniy96/url-shortener/internal/logger"
 )
@@ -64,7 +63,7 @@ func (db *Database) Close() error {
 	return db.DB.Close()
 }
 
-func (db *Database) Restore(records []Record) error {
+func (db *Database) CreateDatabase() error {
 	ctx, close := context.WithTimeout(context.Background(), 5*time.Second)
 	defer close()
 
@@ -75,31 +74,6 @@ func (db *Database) Restore(records []Record) error {
 			"origin_url" VARCHAR)`)
 	if err != nil {
 		return err
-	}
-	row := db.DB.QueryRowContext(ctx, `SELECT COUNT(*) as count from urls`)
-	var count int
-	err = row.Scan(&count)
-	if err != nil {
-		return err
-	}
-
-	if count < 1 {
-		tx, err := db.DB.Begin()
-		if err != nil {
-			return err
-		}
-		defer tx.Rollback()
-
-		for _, rec := range records {
-			_, err := tx.ExecContext(ctx,
-				`INSERT INTO urls (uuid, short_url, origin_url) VALUES($1, $2, $3)`,
-				rec.UUID, rec.ShortULR, rec.OriginalURL)
-			if err != nil {
-				logger.Log.Error("database insert error", zap.Error(err))
-			}
-		}
-
-		return tx.Commit()
 	}
 
 	return nil

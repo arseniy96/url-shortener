@@ -7,6 +7,11 @@ import (
 )
 
 func (s *Server) Ping(writer http.ResponseWriter, request *http.Request) {
+	if s.storage.GetMode() != 2 {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
 	err := s.storage.HealthCheck()
 	if err != nil {
 		logger.Log.Error(err)

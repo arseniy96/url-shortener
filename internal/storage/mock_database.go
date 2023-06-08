@@ -48,6 +48,20 @@ func (mr *MockDatabaseInterfaceMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockDatabaseInterface)(nil).Close))
 }
 
+// CreateDatabase mocks base method.
+func (m *MockDatabaseInterface) CreateDatabase() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateDatabase")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateDatabase indicates an expected call of CreateDatabase.
+func (mr *MockDatabaseInterfaceMockRecorder) CreateDatabase() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDatabase", reflect.TypeOf((*MockDatabaseInterface)(nil).CreateDatabase))
+}
+
 // FindRecord mocks base method.
 func (m *MockDatabaseInterface) FindRecord(arg0 context.Context, arg1 string) (Record, error) {
 	m.ctrl.T.Helper()
@@ -75,20 +89,6 @@ func (m *MockDatabaseInterface) HealthCheck() error {
 func (mr *MockDatabaseInterfaceMockRecorder) HealthCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockDatabaseInterface)(nil).HealthCheck))
-}
-
-// Restore mocks base method.
-func (m *MockDatabaseInterface) Restore(arg0 []Record) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Restore", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Restore indicates an expected call of Restore.
-func (mr *MockDatabaseInterfaceMockRecorder) Restore(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Restore", reflect.TypeOf((*MockDatabaseInterface)(nil).Restore), arg0)
 }
 
 // SaveRecord mocks base method.

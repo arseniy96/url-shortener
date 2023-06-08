@@ -4,9 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
-	"reflect"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,7 +23,7 @@ type DatabaseInterface interface {
 	FindRecord(ctx context.Context, value string) (Record, error)
 	HealthCheck() error
 	Close() error
-	Restore([]Record) error
+	CreateDatabase() error
 	SaveRecord(context.Context, *Record) error
 }
 
@@ -74,11 +72,16 @@ func NewStorage(filename, connectionData string) (*Storage, error) {
 	var db *Database
 	var err error
 
+	mode := MemoryMode
+
 	if connectionData != "" {
+		mode = DBMode
 		db, err = NewDatabase(connectionData)
 		if err != nil {
 			return nil, err
 		}
+	} else if filename != "" {
+		mode = FileMode
 	}
 
 	store := Storage{
@@ -86,39 +89,39 @@ func NewStorage(filename, connectionData string) (*Storage, error) {
 		filename:   filename,
 		dataWriter: dataWriter,
 		database:   db,
+		mode:       mode,
 	}
 
 	return &store, nil
 }
 
 func (s *Storage) Restore() error {
-	file, err := os.OpenFile(s.filename, os.O_RDONLY|os.O_CREATE, 0666)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	var records []Record
-
-	fileScanner := bufio.NewScanner(file)
-
-	for fileScanner.Scan() {
-		var record Record
-		line := fileScanner.Text()
-		err = json.Unmarshal([]byte(line), &record)
+	switch s.mode {
+	case FileMode:
+		file, err := os.OpenFile(s.filename, os.O_RDONLY|os.O_CREATE, 0666)
 		if err != nil {
-			logger.Log.Error("data decoding problem", zap.Error(err))
-			continue
+			return err
 		}
+		defer file.Close()
 
-		records = append(records, record)
-		s.Links[record.ShortULR] = record.OriginalURL
-	}
+		fileScanner := bufio.NewScanner(file)
 
-	if err := s.HealthCheck(); err == nil {
-		err := s.database.Restore(records)
+		for fileScanner.Scan() {
+			var record Record
+			line := fileScanner.Text()
+			err = json.Unmarshal([]byte(line), &record)
+			if err != nil {
+				logger.Log.Error("data decoding problem", zap.Error(err))
+				continue
+			}
+
+			s.Links[record.ShortULR] = record.OriginalURL
+		}
+	case DBMode:
+		err := s.database.CreateDatabase()
 		if err != nil {
-			logger.Log.Error("database restore problem", zap.Error(err))
+			logger.Log.Error("database creation error", zap.Error(err))
+			return err
 		}
 	}
 
@@ -133,14 +136,14 @@ func (s *Storage) Add(key, value string) {
 		OriginalURL: value,
 	}
 
-	if err := s.HealthCheck(); err == nil {
+	if s.mode == DBMode {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		err := s.database.SaveRecord(ctx, &record)
 		if err != nil {
 			logger.Log.Error("save data to database error", zap.Error(err))
 		}
-	} else if s.filename != "" {
+	} else if s.mode == FileMode {
 		dataWriter, err := NewDataWriter(s.filename)
 		if err != nil {
 			logger.Log.Error("Open File error", zap.Error(err))
@@ -157,11 +160,7 @@ func (s *Storage) Add(key, value string) {
 }
 
 func (s *Storage) Get(key string) (string, bool) {
-	if err := s.HealthCheck(); err != nil {
-		logger.Log.Error("database connection error", zap.Error(err))
-		value, found := s.Links[key]
-		return value, found
-	} else {
+	if s.mode == DBMode {
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
 		rec, err := s.database.FindRecord(ctx, key)
@@ -170,16 +169,20 @@ func (s *Storage) Get(key string) (string, bool) {
 			return "", false
 		}
 		return rec.OriginalURL, true
+	} else {
+		value, found := s.Links[key]
+		return value, found
 	}
 }
 
 func (s *Storage) HealthCheck() error {
-	if reflect.ValueOf(s.database).IsNil() {
-		return fmt.Errorf("database is null")
-	}
 	return s.database.HealthCheck()
 }
 
 func (s *Storage) CloseConnection() error {
 	return s.database.Close()
+}
+
+func (s *Storage) GetMode() int {
+	return s.mode
 }
