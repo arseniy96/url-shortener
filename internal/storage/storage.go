@@ -4,10 +4,13 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 
 	"github.com/arseniy96/url-shortener/internal/logger"
@@ -19,8 +22,11 @@ const (
 	DBMode
 )
 
+var ErrConflict = errors.New(`already exists`)
+
 type DatabaseInterface interface {
 	FindRecord(ctx context.Context, value string) (Record, error)
+	FindRecordByOriginURL(ctx context.Context, originURL string) (Record, error)
 	HealthCheck() error
 	Close() error
 	CreateDatabase() error
@@ -129,7 +135,7 @@ func (s *Storage) Restore() error {
 	return nil
 }
 
-func (s *Storage) Add(key, value string) {
+func (s *Storage) Add(key, value string) error {
 	id := uuid.NewString()
 	record := Record{
 		UUID:        id,
@@ -142,12 +148,19 @@ func (s *Storage) Add(key, value string) {
 		defer cancel()
 		err := s.database.SaveRecord(ctx, &record)
 		if err != nil {
-			logger.Log.Error("save data to database error", zap.Error(err))
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
+				return ErrConflict
+			} else {
+				logger.Log.Error("save data to database error", zap.Error(err))
+				return err
+			}
 		}
 	} else if s.mode == FileMode {
 		dataWriter, err := NewDataWriter(s.filename)
 		if err != nil {
 			logger.Log.Error("Open File error", zap.Error(err))
+			return err
 		}
 		s.dataWriter = dataWriter
 		defer s.dataWriter.Close()
@@ -155,9 +168,11 @@ func (s *Storage) Add(key, value string) {
 		err = s.dataWriter.WriteData(&record)
 		if err != nil {
 			logger.Log.Error(zap.Error(err))
+			return err
 		}
 	}
 	s.Links[key] = value
+	return nil
 }
 
 func (s *Storage) Get(key string) (string, bool) {
@@ -173,6 +188,20 @@ func (s *Storage) Get(key string) (string, bool) {
 		value, found := s.Links[key]
 		return value, found
 	}
+}
+
+func (s *Storage) GetByOriginURL(originURL string) (string, error) {
+	if s.mode == DBMode {
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		defer cancel()
+		rec, err := s.database.FindRecordByOriginURL(ctx, originURL)
+		if err != nil {
+			return "", err
+		}
+		return rec.ShortULR, nil
+	}
+
+	return "", errors.New("not database mode")
 }
 
 func (s *Storage) AddBatch(records []Record) error {

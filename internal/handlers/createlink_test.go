@@ -158,8 +158,9 @@ func NewTestStorage() *TestStorage {
 	}
 }
 
-func (s *TestStorage) Add(_, _ string) {
+func (s *TestStorage) Add(_, _ string) error {
 	s.Urls["test"] = "Test"
+	return nil
 }
 
 func (s *TestStorage) AddBatch(_ []storage.Record) error {
@@ -172,6 +173,10 @@ func (s *TestStorage) Get(key string) (string, bool) {
 	} else {
 		return "", false
 	}
+}
+
+func (s *TestStorage) GetByOriginURL(_ string) (string, error) {
+	return "", nil
 }
 
 func (s *TestStorage) HealthCheck() error {

@@ -7,11 +7,12 @@ import (
 )
 
 type Repository interface {
-	Add(string, string)
+	Add(string, string) error
 	Get(string) (string, bool)
 	HealthCheck() error
 	GetMode() int
-	AddBatch(records []storage.Record) error
+	AddBatch([]storage.Record) error
+	GetByOriginURL(string) (string, error)
 }
 
 type Generate interface {
