@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/arseniy96/url-shortener/internal/config"
 	"github.com/arseniy96/url-shortener/internal/services/keygenerator"
+	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
 type Repository interface {
@@ -10,6 +11,7 @@ type Repository interface {
 	Get(string) (string, bool)
 	HealthCheck() error
 	GetMode() int
+	AddBatch(records []storage.Record) error
 }
 
 type Generate interface {

@@ -49,6 +49,25 @@ func (db *Database) SaveRecord(ctx context.Context, rec *Record) error {
 	return err
 }
 
+func (db *Database) SaveRecordsBatch(ctx context.Context, records []Record) error {
+	tx, err := db.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	for _, rec := range records {
+		_, err := tx.ExecContext(ctx,
+			`INSERT INTO urls(uuid, short_url, origin_url) VALUES($1, $2, $3)`,
+			rec.UUID, rec.ShortULR, rec.OriginalURL)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 func (db *Database) HealthCheck() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()

@@ -104,3 +104,17 @@ func (mr *MockDatabaseInterfaceMockRecorder) SaveRecord(arg0, arg1 interface{}) 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveRecord", reflect.TypeOf((*MockDatabaseInterface)(nil).SaveRecord), arg0, arg1)
 }
+
+// SaveRecordsBatch mocks base method.
+func (m *MockDatabaseInterface) SaveRecordsBatch(arg0 context.Context, arg1 []Record) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveRecordsBatch", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SaveRecordsBatch indicates an expected call of SaveRecordsBatch.
+func (mr *MockDatabaseInterfaceMockRecorder) SaveRecordsBatch(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveRecordsBatch", reflect.TypeOf((*MockDatabaseInterface)(nil).SaveRecordsBatch), arg0, arg1)
+}

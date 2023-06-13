@@ -25,6 +25,7 @@ type DatabaseInterface interface {
 	Close() error
 	CreateDatabase() error
 	SaveRecord(context.Context, *Record) error
+	SaveRecordsBatch(context.Context, []Record) error
 }
 
 type Storage struct {
@@ -36,9 +37,9 @@ type Storage struct {
 }
 
 type Record struct {
-	UUID        uuid.UUID `json:"uuid"`
-	ShortULR    string    `json:"short_url"`
-	OriginalURL string    `json:"original_url"`
+	UUID        string `json:"uuid"`
+	ShortULR    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
 }
 
 type DataWriter struct {
@@ -129,7 +130,7 @@ func (s *Storage) Restore() error {
 }
 
 func (s *Storage) Add(key, value string) {
-	id := uuid.New()
+	id := uuid.NewString()
 	record := Record{
 		UUID:        id,
 		ShortULR:    key,
@@ -165,7 +166,6 @@ func (s *Storage) Get(key string) (string, bool) {
 		defer cancel()
 		rec, err := s.database.FindRecord(ctx, key)
 		if err != nil {
-			logger.Log.Error("database find error", zap.Error(err))
 			return "", false
 		}
 		return rec.OriginalURL, true
@@ -173,6 +173,36 @@ func (s *Storage) Get(key string) (string, bool) {
 		value, found := s.Links[key]
 		return value, found
 	}
+}
+
+func (s *Storage) AddBatch(records []Record) error {
+	if s.mode == DBMode {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		err := s.database.SaveRecordsBatch(ctx, records)
+		if err != nil {
+			logger.Log.Error("save data to database error", zap.Error(err))
+		}
+	} else if s.mode == FileMode {
+		dataWriter, err := NewDataWriter(s.filename)
+		if err != nil {
+			logger.Log.Error("Open File error", zap.Error(err))
+		}
+		s.dataWriter = dataWriter
+		defer s.dataWriter.Close()
+	}
+
+	for _, record := range records {
+		if s.mode == FileMode {
+			err := s.dataWriter.WriteData(&record)
+			if err != nil {
+				logger.Log.Error(zap.Error(err))
+			}
+		}
+		s.Links[record.ShortULR] = record.OriginalURL
+	}
+
+	return nil
 }
 
 func (s *Storage) HealthCheck() error {

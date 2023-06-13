@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/arseniy96/url-shortener/internal/config"
+	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
 func TestServer_CreateLink(t *testing.T) {
@@ -159,6 +160,10 @@ func NewTestStorage() *TestStorage {
 
 func (s *TestStorage) Add(_, _ string) {
 	s.Urls["test"] = "Test"
+}
+
+func (s *TestStorage) AddBatch(_ []storage.Record) error {
+	return nil
 }
 
 func (s *TestStorage) Get(key string) (string, bool) {
