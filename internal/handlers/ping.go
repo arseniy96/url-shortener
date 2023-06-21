@@ -4,10 +4,11 @@ import (
 	"net/http"
 
 	"github.com/arseniy96/url-shortener/internal/logger"
+	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
 func (s *Server) Ping(writer http.ResponseWriter, request *http.Request) {
-	if s.storage.GetMode() != 2 {
+	if s.storage.GetMode() != storage.DBMode {
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/arseniy96/url-shortener/internal/models"
 	"github.com/arseniy96/url-shortener/internal/storage"
@@ -37,7 +39,9 @@ func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Requ
 		})
 	}
 
-	err := s.storage.AddBatch(records)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := s.storage.AddBatch(ctx, records)
 	if err != nil {
 		http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
 		return

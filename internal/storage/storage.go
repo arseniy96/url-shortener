@@ -151,10 +151,10 @@ func (s *Storage) Add(key, value string) error {
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
 				return ErrConflict
-			} else {
-				logger.Log.Error("save data to database error", zap.Error(err))
-				return err
 			}
+
+			logger.Log.Error("save data to database error", zap.Error(err))
+			return err
 		}
 	} else if s.mode == FileMode {
 		dataWriter, err := NewDataWriter(s.filename)
@@ -184,10 +184,9 @@ func (s *Storage) Get(key string) (string, bool) {
 			return "", false
 		}
 		return rec.OriginalURL, true
-	} else {
-		value, found := s.Links[key]
-		return value, found
 	}
+	value, found := s.Links[key]
+	return value, found
 }
 
 func (s *Storage) GetByOriginURL(originURL string) (string, error) {
@@ -204,7 +203,7 @@ func (s *Storage) GetByOriginURL(originURL string) (string, error) {
 	return "", errors.New("not database mode")
 }
 
-func (s *Storage) AddBatch(records []Record) error {
+func (s *Storage) AddBatch(ctx context.Context, records []Record) error {
 	if s.mode == DBMode {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()

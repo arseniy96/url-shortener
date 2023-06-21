@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -163,7 +164,7 @@ func (s *TestStorage) Add(_, _ string) error {
 	return nil
 }
 
-func (s *TestStorage) AddBatch(_ []storage.Record) error {
+func (s *TestStorage) AddBatch(ctx context.Context, _ []storage.Record) error {
 	return nil
 }
 
