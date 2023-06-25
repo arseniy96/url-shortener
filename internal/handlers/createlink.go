@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/arseniy96/url-shortener/internal/logger"
 	"github.com/arseniy96/url-shortener/internal/models"
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
@@ -19,11 +20,17 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, "Invalid request", http.StatusBadRequest)
 		return
 	}
+	cookie, err := request.Cookie("shortener_session")
+	if err != nil {
+		http.Error(writer, "User unauthorized", http.StatusBadRequest)
+		return
+	}
 
 	key := s.generator.CreateKey()
 
-	err = s.storage.Add(key, string(body))
+	err = s.storage.Add(key, string(body), cookie.Value)
 	if err != nil {
+		logger.Log.Error(err)
 		if err == storage.ErrConflict {
 			shortURL, err := s.storage.GetByOriginURL(string(body))
 			if err != nil {
@@ -56,13 +63,19 @@ func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Reques
 	}
 	url := body.URL
 
+	cookie, err := request.Cookie("shortener_session")
+	if err != nil {
+		http.Error(writer, "User unauthorized", http.StatusBadRequest)
+		return
+	}
+
 	if len(url) == 0 {
 		http.Error(writer, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	key := s.generator.CreateKey()
-	err := s.storage.Add(key, url)
+	err = s.storage.Add(key, url, cookie.Value)
 	if err != nil {
 		if err == storage.ErrConflict {
 			shortURL, err := s.storage.GetByOriginURL(url)

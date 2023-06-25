@@ -73,6 +73,10 @@ func TestServer_CreateLink(t *testing.T) {
 				Config:    tt.fields.config,
 			}
 
+			request.AddCookie(&http.Cookie{
+				Name:  "shortener_session",
+				Value: "test",
+			})
 			s.CreateLink(writer, request)
 
 			assert.Equal(t, tt.want.expectedCode, writer.Code, "Код ответа не совпадает с ожидаемым")
@@ -141,6 +145,10 @@ func TestServer_CreateLinkJSON(t *testing.T) {
 				Config:    tt.fields.config,
 			}
 
+			request.AddCookie(&http.Cookie{
+				Name:  "shortener_session",
+				Value: "test",
+			})
 			s.CreateLinkJSON(writer, request)
 
 			assert.Equal(t, tt.want.expectedCode, writer.Code, "Код ответа не совпадает с ожидаемым")
@@ -159,7 +167,7 @@ func NewTestStorage() *TestStorage {
 	}
 }
 
-func (s *TestStorage) Add(_, _ string) error {
+func (s *TestStorage) Add(_, _, _ string) error {
 	s.Urls["test"] = "Test"
 	return nil
 }
@@ -178,6 +186,22 @@ func (s *TestStorage) Get(key string) (string, bool) {
 
 func (s *TestStorage) GetByOriginURL(_ string) (string, error) {
 	return "", nil
+}
+
+func (s *TestStorage) GetByUser(_ context.Context, _ string) ([]storage.Record, error) {
+	return nil, nil
+}
+
+func (s *TestStorage) CreateUser(_ context.Context) (*storage.User, error) {
+	return nil, nil
+}
+
+func (s *TestStorage) FindUserByID(_ context.Context, _ int) (*storage.User, error) {
+	return nil, nil
+}
+
+func (s *TestStorage) UpdateUser(_ context.Context, _ int, _ string) error {
+	return nil
 }
 
 func (s *TestStorage) HealthCheck() error {

@@ -30,8 +30,13 @@ type DatabaseInterface interface {
 	HealthCheck() error
 	Close() error
 	CreateDatabase() error
-	SaveRecord(context.Context, *Record) error
+	SaveRecord(context.Context, *Record, int) error
 	SaveRecordsBatch(context.Context, []Record) error
+	FindRecordsByUserID(context.Context, int) ([]Record, error)
+	FindUserByCookie(context.Context, string) (*User, error)
+	CreateUser(context.Context) (*User, error)
+	UpdateUser(context.Context, int, string) error
+	FindUserByID(context.Context, int) (*User, error)
 }
 
 type Storage struct {
@@ -46,6 +51,11 @@ type Record struct {
 	UUID        string `json:"uuid"`
 	ShortULR    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
+}
+
+type User struct {
+	UserID int    `json:"user_id"`
+	Cookie string `json:"cookie"`
 }
 
 type DataWriter struct {
@@ -135,7 +145,7 @@ func (s *Storage) Restore() error {
 	return nil
 }
 
-func (s *Storage) Add(key, value string) error {
+func (s *Storage) Add(key, value, cookie string) error {
 	id := uuid.NewString()
 	record := Record{
 		UUID:        id,
@@ -146,7 +156,12 @@ func (s *Storage) Add(key, value string) error {
 	if s.mode == DBMode {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		err := s.database.SaveRecord(ctx, &record)
+
+		user, err := s.database.FindUserByCookie(ctx, cookie)
+		if err != nil {
+			return err
+		}
+		err = s.database.SaveRecord(ctx, &record, user.UserID)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
@@ -231,6 +246,46 @@ func (s *Storage) AddBatch(ctx context.Context, records []Record) error {
 	}
 
 	return nil
+}
+
+func (s *Storage) GetByUser(ctx context.Context, cookie string) ([]Record, error) {
+	if s.mode == DBMode {
+		user, err := s.database.FindUserByCookie(ctx, cookie)
+		if err != nil {
+			return nil, err
+		}
+		records, err := s.database.FindRecordsByUserID(ctx, user.UserID)
+		if err != nil {
+			return nil, err
+		}
+		return records, nil
+	}
+
+	return nil, errors.New("not database mode")
+}
+
+func (s *Storage) FindUserByID(ctx context.Context, userID int) (*User, error) {
+	if s.mode == DBMode {
+		return s.database.FindUserByID(ctx, userID)
+	}
+
+	return nil, errors.New("not database mode")
+}
+
+func (s *Storage) CreateUser(ctx context.Context) (*User, error) {
+	if s.mode == DBMode {
+		return s.database.CreateUser(ctx)
+	}
+
+	return nil, errors.New("not database mode")
+}
+
+func (s *Storage) UpdateUser(ctx context.Context, id int, cookie string) error {
+	if s.mode == DBMode {
+		return s.database.UpdateUser(ctx, id, cookie)
+	}
+
+	return errors.New("not database mode")
 }
 
 func (s *Storage) HealthCheck() error {

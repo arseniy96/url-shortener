@@ -62,6 +62,21 @@ func (mr *MockDatabaseInterfaceMockRecorder) CreateDatabase() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDatabase", reflect.TypeOf((*MockDatabaseInterface)(nil).CreateDatabase))
 }
 
+// CreateUser mocks base method.
+func (m *MockDatabaseInterface) CreateUser(arg0 context.Context) (*User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", arg0)
+	ret0, _ := ret[0].(*User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockDatabaseInterfaceMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockDatabaseInterface)(nil).CreateUser), arg0)
+}
+
 // FindRecord mocks base method.
 func (m *MockDatabaseInterface) FindRecord(arg0 context.Context, arg1 string) (Record, error) {
 	m.ctrl.T.Helper()
@@ -92,6 +107,51 @@ func (mr *MockDatabaseInterfaceMockRecorder) FindRecordByOriginURL(arg0, arg1 in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRecordByOriginURL", reflect.TypeOf((*MockDatabaseInterface)(nil).FindRecordByOriginURL), arg0, arg1)
 }
 
+// FindRecordsByUserID mocks base method.
+func (m *MockDatabaseInterface) FindRecordsByUserID(arg0 context.Context, arg1 int) ([]Record, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindRecordsByUserID", arg0, arg1)
+	ret0, _ := ret[0].([]Record)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindRecordsByUserID indicates an expected call of FindRecordsByUserID.
+func (mr *MockDatabaseInterfaceMockRecorder) FindRecordsByUserID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRecordsByUserID", reflect.TypeOf((*MockDatabaseInterface)(nil).FindRecordsByUserID), arg0, arg1)
+}
+
+// FindUserByCookie mocks base method.
+func (m *MockDatabaseInterface) FindUserByCookie(arg0 context.Context, arg1 string) (*User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindUserByCookie", arg0, arg1)
+	ret0, _ := ret[0].(*User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindUserByCookie indicates an expected call of FindUserByCookie.
+func (mr *MockDatabaseInterfaceMockRecorder) FindUserByCookie(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByCookie", reflect.TypeOf((*MockDatabaseInterface)(nil).FindUserByCookie), arg0, arg1)
+}
+
+// FindUserByID mocks base method.
+func (m *MockDatabaseInterface) FindUserByID(arg0 context.Context, arg1 int) (*User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindUserByID", arg0, arg1)
+	ret0, _ := ret[0].(*User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindUserByID indicates an expected call of FindUserByID.
+func (mr *MockDatabaseInterfaceMockRecorder) FindUserByID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByID", reflect.TypeOf((*MockDatabaseInterface)(nil).FindUserByID), arg0, arg1)
+}
+
 // HealthCheck mocks base method.
 func (m *MockDatabaseInterface) HealthCheck() error {
 	m.ctrl.T.Helper()
@@ -107,17 +167,17 @@ func (mr *MockDatabaseInterfaceMockRecorder) HealthCheck() *gomock.Call {
 }
 
 // SaveRecord mocks base method.
-func (m *MockDatabaseInterface) SaveRecord(arg0 context.Context, arg1 *Record) error {
+func (m *MockDatabaseInterface) SaveRecord(arg0 context.Context, arg1 *Record, arg2 int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveRecord", arg0, arg1)
+	ret := m.ctrl.Call(m, "SaveRecord", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveRecord indicates an expected call of SaveRecord.
-func (mr *MockDatabaseInterfaceMockRecorder) SaveRecord(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockDatabaseInterfaceMockRecorder) SaveRecord(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveRecord", reflect.TypeOf((*MockDatabaseInterface)(nil).SaveRecord), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveRecord", reflect.TypeOf((*MockDatabaseInterface)(nil).SaveRecord), arg0, arg1, arg2)
 }
 
 // SaveRecordsBatch mocks base method.
@@ -132,4 +192,18 @@ func (m *MockDatabaseInterface) SaveRecordsBatch(arg0 context.Context, arg1 []Re
 func (mr *MockDatabaseInterfaceMockRecorder) SaveRecordsBatch(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveRecordsBatch", reflect.TypeOf((*MockDatabaseInterface)(nil).SaveRecordsBatch), arg0, arg1)
+}
+
+// UpdateUser mocks base method.
+func (m *MockDatabaseInterface) UpdateUser(arg0 context.Context, arg1 int, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUser", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUser indicates an expected call of UpdateUser.
+func (mr *MockDatabaseInterfaceMockRecorder) UpdateUser(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockDatabaseInterface)(nil).UpdateUser), arg0, arg1, arg2)
 }
