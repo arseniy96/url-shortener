@@ -1,12 +1,16 @@
 package handlers
 
 import (
-	"github.com/arseniy96/url-shortener/internal/config"
-	"github.com/stretchr/testify/assert"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/arseniy96/url-shortener/internal/config"
+	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
 func TestServer_CreateLink(t *testing.T) {
@@ -155,8 +159,13 @@ func NewTestStorage() *TestStorage {
 	}
 }
 
-func (s *TestStorage) Add(_, _ string) {
+func (s *TestStorage) Add(_, _ string) error {
 	s.Urls["test"] = "Test"
+	return nil
+}
+
+func (s *TestStorage) AddBatch(ctx context.Context, _ []storage.Record) error {
+	return nil
 }
 
 func (s *TestStorage) Get(key string) (string, bool) {
@@ -165,6 +174,18 @@ func (s *TestStorage) Get(key string) (string, bool) {
 	} else {
 		return "", false
 	}
+}
+
+func (s *TestStorage) GetByOriginURL(_ string) (string, error) {
+	return "", nil
+}
+
+func (s *TestStorage) HealthCheck() error {
+	return nil
+}
+
+func (s *TestStorage) GetMode() int {
+	return 0
 }
 
 type TestGenerator struct{}
