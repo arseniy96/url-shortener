@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -23,6 +24,7 @@ const (
 )
 
 var ErrConflict = errors.New(`already exists`)
+var ErrDeleted = errors.New(`was deleted`)
 
 type DatabaseInterface interface {
 	FindRecord(ctx context.Context, value string) (Record, error)
@@ -51,6 +53,7 @@ type Record struct {
 	UUID        string `json:"uuid"`
 	ShortULR    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
+	DeletedFlag bool   `json:"is_deleted"`
 }
 
 type User struct {
@@ -190,18 +193,24 @@ func (s *Storage) Add(key, value, cookie string) error {
 	return nil
 }
 
-func (s *Storage) Get(key string) (string, bool) {
+func (s *Storage) Get(key string) (string, error) {
 	if s.mode == DBMode {
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
 		rec, err := s.database.FindRecord(ctx, key)
 		if err != nil {
-			return "", false
+			return "", fmt.Errorf("URL with key %v missing", key)
 		}
-		return rec.OriginalURL, true
+		if rec.DeletedFlag {
+			return "", ErrDeleted
+		}
+		return rec.OriginalURL, nil
 	}
 	value, found := s.Links[key]
-	return value, found
+	if !found {
+		return "", ErrDeleted
+	}
+	return value, nil
 }
 
 func (s *Storage) GetByOriginURL(originURL string) (string, error) {

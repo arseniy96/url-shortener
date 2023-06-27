@@ -30,10 +30,10 @@ func NewDatabase(connectionData string) (*Database, error) {
 
 func (db *Database) FindRecord(ctx context.Context, value string) (Record, error) {
 	row := db.DB.QueryRowContext(ctx,
-		"SELECT uuid, short_url, origin_url FROM urls WHERE short_url=$1 LIMIT 1", value)
+		"SELECT uuid, short_url, origin_url, is_deleted FROM urls WHERE short_url=$1 LIMIT 1", value)
 
 	var rec Record
-	err := row.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL)
+	err := row.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.DeletedFlag)
 	if err != nil {
 		return rec, err
 	}
@@ -43,10 +43,10 @@ func (db *Database) FindRecord(ctx context.Context, value string) (Record, error
 
 func (db *Database) FindRecordByOriginURL(ctx context.Context, value string) (Record, error) {
 	row := db.DB.QueryRowContext(ctx,
-		"SELECT uuid, short_url, origin_url FROM urls WHERE origin_url=$1 LIMIT 1", value)
+		"SELECT uuid, short_url, origin_url, is_deleted FROM urls WHERE origin_url=$1 LIMIT 1", value)
 
 	var rec Record
-	err := row.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL)
+	err := row.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.DeletedFlag)
 	if err != nil {
 		return rec, err
 	}
@@ -118,7 +118,8 @@ func (db *Database) CreateDatabase() error {
 			"uuid" VARCHAR,
 			"short_url" VARCHAR,
 			"origin_url" VARCHAR,
-			"user_id" INTEGER)`)
+			"user_id" INTEGER,
+			"is_deleted" BOOLEAN DEFAULT false)`)
 	if err != nil {
 		return err
 	}
@@ -134,7 +135,7 @@ func (db *Database) CreateDatabase() error {
 
 func (db *Database) FindRecordsByUserID(ctx context.Context, userID int) (records []Record, err error) {
 	rows, err := db.DB.QueryContext(ctx,
-		"SELECT uuid, short_url, origin_url FROM urls WHERE user_id=$1", userID)
+		"SELECT uuid, short_url, origin_url, is_deleted FROM urls WHERE user_id=$1", userID)
 	if err != nil {
 		return
 	}
@@ -142,7 +143,7 @@ func (db *Database) FindRecordsByUserID(ctx context.Context, userID int) (record
 
 	for rows.Next() {
 		var rec Record
-		err = rows.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL)
+		err = rows.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.DeletedFlag)
 		if err != nil {
 			return
 		}

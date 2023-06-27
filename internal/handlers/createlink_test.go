@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -176,11 +177,11 @@ func (s *TestStorage) AddBatch(ctx context.Context, _ []storage.Record) error {
 	return nil
 }
 
-func (s *TestStorage) Get(key string) (string, bool) {
+func (s *TestStorage) Get(key string) (string, error) {
 	if key == "test" {
-		return "test", true
+		return "test", nil
 	} else {
-		return "", false
+		return "", fmt.Errorf("Error")
 	}
 }
 

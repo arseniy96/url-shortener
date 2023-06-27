@@ -10,7 +10,7 @@ import (
 
 type Repository interface {
 	Add(string, string, string) error
-	Get(string) (string, bool)
+	Get(string) (string, error)
 	HealthCheck() error
 	GetMode() int
 	AddBatch(context.Context, []storage.Record) error

@@ -5,7 +5,7 @@ import (
 )
 
 type Repository interface {
-	Get(string) (string, bool)
+	Get(string) (string, error)
 }
 
 func NewGenerator(store Repository) Generator {
@@ -28,7 +28,7 @@ func (g Generator) CreateKey() string {
 		symbols[i] = g.letters[rand.Intn(len(g.letters))]
 	}
 	key := string(symbols)
-	if _, exists := g.storage.Get(key); exists {
+	if _, err := g.storage.Get(key); err == nil {
 		return g.CreateKey()
 	}
 	return key
