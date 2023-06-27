@@ -10,11 +10,12 @@ import (
 func NewRouter(server *handlers.Server) chi.Router {
 	router := chi.NewRouter()
 	router.Use(middlewares.GzipMiddleware, middlewares.LoggerMiddleware)
-	router.Post("/", server.CreateLink)
-	router.Get("/{url_id}", server.ResolveLink)
-	router.Post("/api/shorten", server.CreateLinkJSON)
-	router.Post("/api/shorten/batch", server.CreateLinksBatch)
-	router.Get("/ping", server.Ping)
+	router.Post("/", server.CookieMiddleware(server.CreateLink))
+	router.Get("/{url_id}", server.CookieMiddleware(server.ResolveLink))
+	router.Get("/ping", server.CookieMiddleware(server.Ping))
+	router.Post("/api/shorten", server.CookieMiddleware(server.CreateLinkJSON))
+	router.Post("/api/shorten/batch", server.CookieMiddleware(server.CreateLinksBatch))
+	router.Get("/api/user/urls", server.CookieMiddleware(server.UserUrls))
 
 	return router
 }
