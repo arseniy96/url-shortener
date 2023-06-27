@@ -39,6 +39,8 @@ type DatabaseInterface interface {
 	CreateUser(context.Context) (*User, error)
 	UpdateUser(context.Context, int, string) error
 	FindUserByID(context.Context, int) (*User, error)
+	FindRecordsBatchByShortURL(context.Context, []string) ([]Record, error)
+	DeleteBatchRecords(context.Context, []Record) error
 }
 
 type Storage struct {
@@ -54,6 +56,7 @@ type Record struct {
 	ShortULR    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 	DeletedFlag bool   `json:"is_deleted"`
+	UserID      int    `json:"user_id"`
 }
 
 type User struct {
@@ -64,6 +67,11 @@ type User struct {
 type DataWriter struct {
 	file    *os.File
 	encoder *json.Encoder
+}
+
+type DeleteURLMessage struct {
+	UserCookie string
+	ShortURLs  []string
 }
 
 func NewDataWriter(filename string) (*DataWriter, error) {
@@ -295,6 +303,33 @@ func (s *Storage) UpdateUser(ctx context.Context, id int, cookie string) error {
 	}
 
 	return errors.New("not database mode")
+}
+
+func (s *Storage) DeleteUserURLs(ctx context.Context, message DeleteURLMessage) error {
+	user, err := s.database.FindUserByCookie(ctx, message.UserCookie)
+	if err != nil {
+		return err
+	}
+	userID := user.UserID
+
+	var records, deletedRecords []Record
+
+	records, err = s.database.FindRecordsBatchByShortURL(ctx, message.ShortURLs)
+	if err != nil {
+		return err
+	}
+
+	for _, rec := range records {
+		if rec.UserID == userID {
+			deletedRecords = append(deletedRecords, rec)
+		}
+	}
+
+	if len(deletedRecords) == 0 {
+		return nil
+	}
+
+	return s.database.DeleteBatchRecords(ctx, deletedRecords)
 }
 
 func (s *Storage) HealthCheck() error {

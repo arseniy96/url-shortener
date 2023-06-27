@@ -16,6 +16,7 @@ func NewRouter(server *handlers.Server) chi.Router {
 	router.Post("/api/shorten", server.CookieMiddleware(server.CreateLinkJSON))
 	router.Post("/api/shorten/batch", server.CookieMiddleware(server.CreateLinksBatch))
 	router.Get("/api/user/urls", server.CookieMiddleware(server.UserUrls))
+	router.Delete("/api/user/urls", server.CookieMiddleware(server.DeleteUserUrls))
 
 	return router
 }

@@ -201,6 +201,10 @@ func (s *TestStorage) FindUserByID(_ context.Context, _ int) (*storage.User, err
 	return nil, nil
 }
 
+func (s *TestStorage) DeleteUserURLs(context.Context, storage.DeleteURLMessage) error {
+	return nil
+}
+
 func (s *TestStorage) UpdateUser(_ context.Context, _ int, _ string) error {
 	return nil
 }
