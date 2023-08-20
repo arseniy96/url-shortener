@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/arseniy96/url-shortener/internal/handlers"
 	"github.com/arseniy96/url-shortener/internal/middlewares"
@@ -17,6 +18,8 @@ func NewRouter(server *handlers.Server) chi.Router {
 	router.Post("/api/shorten/batch", server.CookieMiddleware(server.CreateLinksBatch))
 	router.Get("/api/user/urls", server.CookieMiddleware(server.UserUrls))
 	router.Delete("/api/user/urls", server.CookieMiddleware(server.DeleteUserUrls))
+
+	router.Mount("/debug/", middleware.Profiler())
 
 	return router
 }

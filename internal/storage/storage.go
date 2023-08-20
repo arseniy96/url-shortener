@@ -305,7 +305,10 @@ func (s *Storage) UpdateUser(ctx context.Context, id int, cookie string) error {
 	return errors.New("not database mode")
 }
 
-func (s *Storage) DeleteUserURLs(ctx context.Context, message DeleteURLMessage) error {
+func (s *Storage) DeleteUserURLs(message DeleteURLMessage) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	user, err := s.database.FindUserByCookie(ctx, message.UserCookie)
 	if err != nil {
 		return err

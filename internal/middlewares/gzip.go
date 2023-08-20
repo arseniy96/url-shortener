@@ -68,6 +68,11 @@ func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		currentWriter := w
 
+		if strings.Contains(r.URL.Path, "pprof") {
+			next.ServeHTTP(currentWriter, r)
+			return
+		}
+
 		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			newWriter := NewGzipWriter(w)
 			currentWriter = newWriter

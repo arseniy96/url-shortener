@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"time"
 
 	"github.com/arseniy96/url-shortener/internal/config"
 	"github.com/arseniy96/url-shortener/internal/logger"
@@ -21,7 +20,7 @@ type Repository interface {
 	CreateUser(context.Context) (*storage.User, error)
 	UpdateUser(context.Context, int, string) error
 	FindUserByID(context.Context, int) (*storage.User, error)
-	DeleteUserURLs(context.Context, storage.DeleteURLMessage) error
+	DeleteUserURLs(storage.DeleteURLMessage) error
 }
 
 type Generate interface {
@@ -49,18 +48,10 @@ func NewServer(s Repository, c *config.Options) *Server {
 }
 
 func (s *Server) deleteMessageBatch() {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	for {
-		select {
-		case msg := <-s.DeleteURLSChan:
-			err := s.storage.DeleteUserURLs(ctx, msg)
-			if err != nil {
-				logger.Log.Error(err)
-				continue
-			}
-		default:
+	for msg := range s.DeleteURLSChan {
+		err := s.storage.DeleteUserURLs(msg)
+		if err != nil {
+			logger.Log.Error(err)
 			continue
 		}
 	}
