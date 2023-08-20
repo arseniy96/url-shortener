@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -23,6 +24,7 @@ const (
 )
 
 var ErrConflict = errors.New(`already exists`)
+var ErrDeleted = errors.New(`was deleted`)
 
 type DatabaseInterface interface {
 	FindRecord(ctx context.Context, value string) (Record, error)
@@ -30,8 +32,15 @@ type DatabaseInterface interface {
 	HealthCheck() error
 	Close() error
 	CreateDatabase() error
-	SaveRecord(context.Context, *Record) error
+	SaveRecord(context.Context, *Record, int) error
 	SaveRecordsBatch(context.Context, []Record) error
+	FindRecordsByUserID(context.Context, int) ([]Record, error)
+	FindUserByCookie(context.Context, string) (*User, error)
+	CreateUser(context.Context) (*User, error)
+	UpdateUser(context.Context, int, string) error
+	FindUserByID(context.Context, int) (*User, error)
+	FindRecordsBatchByShortURL(context.Context, []string) ([]Record, error)
+	DeleteBatchRecords(context.Context, []Record) error
 }
 
 type Storage struct {
@@ -46,11 +55,23 @@ type Record struct {
 	UUID        string `json:"uuid"`
 	ShortULR    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
+	DeletedFlag bool   `json:"is_deleted"`
+	UserID      int    `json:"user_id"`
+}
+
+type User struct {
+	UserID int    `json:"user_id"`
+	Cookie string `json:"cookie"`
 }
 
 type DataWriter struct {
 	file    *os.File
 	encoder *json.Encoder
+}
+
+type DeleteURLMessage struct {
+	UserCookie string
+	ShortURLs  []string
 }
 
 func NewDataWriter(filename string) (*DataWriter, error) {
@@ -135,7 +156,7 @@ func (s *Storage) Restore() error {
 	return nil
 }
 
-func (s *Storage) Add(key, value string) error {
+func (s *Storage) Add(key, value, cookie string) error {
 	id := uuid.NewString()
 	record := Record{
 		UUID:        id,
@@ -146,7 +167,12 @@ func (s *Storage) Add(key, value string) error {
 	if s.mode == DBMode {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		err := s.database.SaveRecord(ctx, &record)
+
+		user, err := s.database.FindUserByCookie(ctx, cookie)
+		if err != nil {
+			return err
+		}
+		err = s.database.SaveRecord(ctx, &record, user.UserID)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
@@ -175,18 +201,24 @@ func (s *Storage) Add(key, value string) error {
 	return nil
 }
 
-func (s *Storage) Get(key string) (string, bool) {
+func (s *Storage) Get(key string) (string, error) {
 	if s.mode == DBMode {
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
 		rec, err := s.database.FindRecord(ctx, key)
 		if err != nil {
-			return "", false
+			return "", fmt.Errorf("URL with key %v missing", key)
 		}
-		return rec.OriginalURL, true
+		if rec.DeletedFlag {
+			return "", ErrDeleted
+		}
+		return rec.OriginalURL, nil
 	}
 	value, found := s.Links[key]
-	return value, found
+	if !found {
+		return "", ErrDeleted
+	}
+	return value, nil
 }
 
 func (s *Storage) GetByOriginURL(originURL string) (string, error) {
@@ -231,6 +263,73 @@ func (s *Storage) AddBatch(ctx context.Context, records []Record) error {
 	}
 
 	return nil
+}
+
+func (s *Storage) GetByUser(ctx context.Context, cookie string) ([]Record, error) {
+	if s.mode == DBMode {
+		user, err := s.database.FindUserByCookie(ctx, cookie)
+		if err != nil {
+			return nil, err
+		}
+		records, err := s.database.FindRecordsByUserID(ctx, user.UserID)
+		if err != nil {
+			return nil, err
+		}
+		return records, nil
+	}
+
+	return nil, errors.New("not database mode")
+}
+
+func (s *Storage) FindUserByID(ctx context.Context, userID int) (*User, error) {
+	if s.mode == DBMode {
+		return s.database.FindUserByID(ctx, userID)
+	}
+
+	return nil, errors.New("not database mode")
+}
+
+func (s *Storage) CreateUser(ctx context.Context) (*User, error) {
+	if s.mode == DBMode {
+		return s.database.CreateUser(ctx)
+	}
+
+	return nil, errors.New("not database mode")
+}
+
+func (s *Storage) UpdateUser(ctx context.Context, id int, cookie string) error {
+	if s.mode == DBMode {
+		return s.database.UpdateUser(ctx, id, cookie)
+	}
+
+	return errors.New("not database mode")
+}
+
+func (s *Storage) DeleteUserURLs(ctx context.Context, message DeleteURLMessage) error {
+	user, err := s.database.FindUserByCookie(ctx, message.UserCookie)
+	if err != nil {
+		return err
+	}
+	userID := user.UserID
+
+	var records, deletedRecords []Record
+
+	records, err = s.database.FindRecordsBatchByShortURL(ctx, message.ShortURLs)
+	if err != nil {
+		return err
+	}
+
+	for _, rec := range records {
+		if rec.UserID == userID {
+			deletedRecords = append(deletedRecords, rec)
+		}
+	}
+
+	if len(deletedRecords) == 0 {
+		return nil
+	}
+
+	return s.database.DeleteBatchRecords(ctx, deletedRecords)
 }
 
 func (s *Storage) HealthCheck() error {

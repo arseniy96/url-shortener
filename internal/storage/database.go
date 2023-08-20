@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -30,10 +31,10 @@ func NewDatabase(connectionData string) (*Database, error) {
 
 func (db *Database) FindRecord(ctx context.Context, value string) (Record, error) {
 	row := db.DB.QueryRowContext(ctx,
-		"SELECT uuid, short_url, origin_url FROM urls WHERE short_url=$1 LIMIT 1", value)
+		"SELECT uuid, short_url, origin_url, is_deleted FROM urls WHERE short_url=$1 LIMIT 1", value)
 
 	var rec Record
-	err := row.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL)
+	err := row.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.DeletedFlag)
 	if err != nil {
 		return rec, err
 	}
@@ -43,10 +44,10 @@ func (db *Database) FindRecord(ctx context.Context, value string) (Record, error
 
 func (db *Database) FindRecordByOriginURL(ctx context.Context, value string) (Record, error) {
 	row := db.DB.QueryRowContext(ctx,
-		"SELECT uuid, short_url, origin_url FROM urls WHERE origin_url=$1 LIMIT 1", value)
+		"SELECT uuid, short_url, origin_url, is_deleted FROM urls WHERE origin_url=$1 LIMIT 1", value)
 
 	var rec Record
-	err := row.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL)
+	err := row.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.DeletedFlag)
 	if err != nil {
 		return rec, err
 	}
@@ -54,10 +55,10 @@ func (db *Database) FindRecordByOriginURL(ctx context.Context, value string) (Re
 	return rec, nil
 }
 
-func (db *Database) SaveRecord(ctx context.Context, rec *Record) error {
+func (db *Database) SaveRecord(ctx context.Context, rec *Record, userID int) error {
 	_, err := db.DB.ExecContext(ctx,
-		`INSERT INTO urls(uuid, short_url, origin_url) VALUES($1, $2, $3)`,
-		rec.UUID, rec.ShortULR, rec.OriginalURL)
+		`INSERT INTO urls(uuid, short_url, origin_url, user_id) VALUES($1, $2, $3, $4)`,
+		rec.UUID, rec.ShortULR, rec.OriginalURL, userID)
 
 	return err
 }
@@ -100,10 +101,26 @@ func (db *Database) CreateDatabase() error {
 	defer close()
 
 	_, err := db.DB.ExecContext(ctx,
+		`CREATE TABLE IF NOT EXISTS users(
+			"id" SERIAL PRIMARY KEY,
+			"cookie" VARCHAR)`)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.DB.ExecContext(ctx,
+		`CREATE UNIQUE INDEX IF NOT EXISTS cookie_idx on users(cookie)`)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.DB.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS urls(
 			"uuid" VARCHAR,
 			"short_url" VARCHAR,
-			"origin_url" VARCHAR)`)
+			"origin_url" VARCHAR,
+			"user_id" INTEGER,
+			"is_deleted" BOOLEAN DEFAULT false)`)
 	if err != nil {
 		return err
 	}
@@ -115,4 +132,120 @@ func (db *Database) CreateDatabase() error {
 	}
 
 	return nil
+}
+
+func (db *Database) FindRecordsByUserID(ctx context.Context, userID int) (records []Record, err error) {
+	rows, err := db.DB.QueryContext(ctx,
+		"SELECT uuid, short_url, origin_url, is_deleted FROM urls WHERE user_id=$1", userID)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var rec Record
+		err = rows.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.DeletedFlag)
+		if err != nil {
+			return
+		}
+
+		records = append(records, rec)
+	}
+	err = rows.Err()
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (db *Database) FindUserByCookie(ctx context.Context, cookie string) (*User, error) {
+	row := db.DB.QueryRowContext(ctx,
+		"SELECT id, cookie FROM users WHERE cookie=$1 LIMIT 1", cookie)
+
+	var user User
+	err := row.Scan(&user.UserID, &user.Cookie)
+	if err != nil {
+		return &user, err
+	}
+
+	return &user, nil
+}
+
+func (db *Database) FindUserByID(ctx context.Context, userID int) (*User, error) {
+	row := db.DB.QueryRowContext(ctx,
+		"SELECT id, cookie FROM users WHERE id=$1 LIMIT 1", userID)
+
+	var user User
+	err := row.Scan(&user.UserID, &user.Cookie)
+	if err != nil {
+		return &user, err
+	}
+
+	return &user, nil
+}
+
+func (db *Database) CreateUser(ctx context.Context) (*User, error) {
+	_, err := db.DB.ExecContext(ctx, `INSERT INTO users DEFAULT VALUES`)
+	if err != nil {
+		return nil, err
+	}
+
+	row := db.DB.QueryRowContext(ctx,
+		"SELECT id FROM users ORDER BY id DESC LIMIT 1")
+	var user User
+	err = row.Scan(&user.UserID)
+	if err != nil {
+		return &user, err
+	}
+
+	return &user, nil
+}
+
+func (db *Database) UpdateUser(ctx context.Context, id int, cookie string) error {
+	_, err := db.DB.ExecContext(ctx, `UPDATE users SET cookie=$1 WHERE id=$2`, cookie, id)
+	return err
+}
+
+func (db *Database) FindRecordsBatchByShortURL(ctx context.Context, urls []string) (records []Record, err error) {
+	params := "{" + strings.Join(urls, ",") + "}"
+
+	rows, err := db.DB.QueryContext(ctx,
+		"SELECT uuid, short_url, origin_url, user_id, is_deleted FROM urls WHERE short_url = ANY($1::text[]);",
+		params,
+	)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var rec Record
+		err = rows.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.UserID, &rec.DeletedFlag)
+		if err != nil {
+			return
+		}
+
+		records = append(records, rec)
+	}
+	err = rows.Err()
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (db *Database) DeleteBatchRecords(ctx context.Context, records []Record) error {
+	var urls []string
+
+	for _, rec := range records {
+		urls = append(urls, rec.ShortULR)
+	}
+
+	params := "{" + strings.Join(urls, ",") + "}"
+
+	_, err := db.DB.ExecContext(ctx, "UPDATE urls SET is_deleted=true WHERE short_url = ANY($1::text[]);",
+		params)
+	return err
 }

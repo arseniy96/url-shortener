@@ -1,6 +1,7 @@
 package keygenerator
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -51,10 +52,10 @@ func (s *TestStorage) Add(_, _ string) {
 	s.Urls["test"] = "Test"
 }
 
-func (s *TestStorage) Get(key string) (string, bool) {
+func (s *TestStorage) Get(key string) (string, error) {
 	if key == "test" {
-		return "test", true
+		return "test", nil
 	} else {
-		return "", false
+		return "", fmt.Errorf("Error")
 	}
 }

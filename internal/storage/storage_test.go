@@ -29,7 +29,7 @@ func TestStorage_Get(t *testing.T) {
 		fields fields
 		args   args
 		want   string
-		want1  bool
+		want1  error
 	}{
 		{
 			name: "success Get from database",
@@ -39,7 +39,7 @@ func TestStorage_Get(t *testing.T) {
 			},
 			args:  args{key: "testS"},
 			want:  "http://test.ru",
-			want1: true,
+			want1: nil,
 		},
 	}
 	for _, tt := range tests {

@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	storage "github.com/arseniy96/url-shortener/internal/storage"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -63,10 +64,10 @@ func (mr *MockDatabaseInterfaceMockRecorder) CreateDatabase() *gomock.Call {
 }
 
 // CreateUser mocks base method.
-func (m *MockDatabaseInterface) CreateUser(arg0 context.Context) (*User, error) {
+func (m *MockDatabaseInterface) CreateUser(arg0 context.Context) (*storage.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUser", arg0)
-	ret0, _ := ret[0].(*User)
+	ret0, _ := ret[0].(*storage.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -78,7 +79,7 @@ func (mr *MockDatabaseInterfaceMockRecorder) CreateUser(arg0 interface{}) *gomoc
 }
 
 // DeleteBatchRecords mocks base method.
-func (m *MockDatabaseInterface) DeleteBatchRecords(arg0 context.Context, arg1 []Record) error {
+func (m *MockDatabaseInterface) DeleteBatchRecords(arg0 context.Context, arg1 []storage.Record) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteBatchRecords", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -92,10 +93,10 @@ func (mr *MockDatabaseInterfaceMockRecorder) DeleteBatchRecords(arg0, arg1 inter
 }
 
 // FindRecord mocks base method.
-func (m *MockDatabaseInterface) FindRecord(arg0 context.Context, arg1 string) (Record, error) {
+func (m *MockDatabaseInterface) FindRecord(arg0 context.Context, arg1 string) (storage.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindRecord", arg0, arg1)
-	ret0, _ := ret[0].(Record)
+	ret0, _ := ret[0].(storage.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -107,10 +108,10 @@ func (mr *MockDatabaseInterfaceMockRecorder) FindRecord(arg0, arg1 interface{}) 
 }
 
 // FindRecordByOriginURL mocks base method.
-func (m *MockDatabaseInterface) FindRecordByOriginURL(arg0 context.Context, arg1 string) (Record, error) {
+func (m *MockDatabaseInterface) FindRecordByOriginURL(arg0 context.Context, arg1 string) (storage.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindRecordByOriginURL", arg0, arg1)
-	ret0, _ := ret[0].(Record)
+	ret0, _ := ret[0].(storage.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -122,10 +123,10 @@ func (mr *MockDatabaseInterfaceMockRecorder) FindRecordByOriginURL(arg0, arg1 in
 }
 
 // FindRecordsBatchByShortURL mocks base method.
-func (m *MockDatabaseInterface) FindRecordsBatchByShortURL(arg0 context.Context, arg1 []string) ([]Record, error) {
+func (m *MockDatabaseInterface) FindRecordsBatchByShortURL(arg0 context.Context, arg1 []string) ([]storage.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindRecordsBatchByShortURL", arg0, arg1)
-	ret0, _ := ret[0].([]Record)
+	ret0, _ := ret[0].([]storage.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -137,10 +138,10 @@ func (mr *MockDatabaseInterfaceMockRecorder) FindRecordsBatchByShortURL(arg0, ar
 }
 
 // FindRecordsByUserID mocks base method.
-func (m *MockDatabaseInterface) FindRecordsByUserID(arg0 context.Context, arg1 int) ([]Record, error) {
+func (m *MockDatabaseInterface) FindRecordsByUserID(arg0 context.Context, arg1 int) ([]storage.Record, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindRecordsByUserID", arg0, arg1)
-	ret0, _ := ret[0].([]Record)
+	ret0, _ := ret[0].([]storage.Record)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -152,10 +153,10 @@ func (mr *MockDatabaseInterfaceMockRecorder) FindRecordsByUserID(arg0, arg1 inte
 }
 
 // FindUserByCookie mocks base method.
-func (m *MockDatabaseInterface) FindUserByCookie(arg0 context.Context, arg1 string) (*User, error) {
+func (m *MockDatabaseInterface) FindUserByCookie(arg0 context.Context, arg1 string) (*storage.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindUserByCookie", arg0, arg1)
-	ret0, _ := ret[0].(*User)
+	ret0, _ := ret[0].(*storage.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -167,10 +168,10 @@ func (mr *MockDatabaseInterfaceMockRecorder) FindUserByCookie(arg0, arg1 interfa
 }
 
 // FindUserByID mocks base method.
-func (m *MockDatabaseInterface) FindUserByID(arg0 context.Context, arg1 int) (*User, error) {
+func (m *MockDatabaseInterface) FindUserByID(arg0 context.Context, arg1 int) (*storage.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindUserByID", arg0, arg1)
-	ret0, _ := ret[0].(*User)
+	ret0, _ := ret[0].(*storage.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -196,7 +197,7 @@ func (mr *MockDatabaseInterfaceMockRecorder) HealthCheck() *gomock.Call {
 }
 
 // SaveRecord mocks base method.
-func (m *MockDatabaseInterface) SaveRecord(arg0 context.Context, arg1 *Record, arg2 int) error {
+func (m *MockDatabaseInterface) SaveRecord(arg0 context.Context, arg1 *storage.Record, arg2 int) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveRecord", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -210,7 +211,7 @@ func (mr *MockDatabaseInterfaceMockRecorder) SaveRecord(arg0, arg1, arg2 interfa
 }
 
 // SaveRecordsBatch mocks base method.
-func (m *MockDatabaseInterface) SaveRecordsBatch(arg0 context.Context, arg1 []Record) error {
+func (m *MockDatabaseInterface) SaveRecordsBatch(arg0 context.Context, arg1 []storage.Record) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveRecordsBatch", arg0, arg1)
 	ret0, _ := ret[0].(error)
