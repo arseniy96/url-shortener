@@ -52,7 +52,7 @@ func (s *Server) deleteMessageBatch() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	for { // FIXME: переделать на Fan-In
+	for {
 		select {
 		case msg := <-s.DeleteURLSChan:
 			err := s.storage.DeleteUserURLs(ctx, msg)

@@ -20,7 +20,7 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	cookie, err := request.Cookie("shortener_session")
+	userSession, err := request.Cookie("shortener_session")
 	if err != nil {
 		http.Error(writer, "User unauthorized", http.StatusBadRequest)
 		return
@@ -28,7 +28,7 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 
 	key := s.generator.CreateKey()
 
-	err = s.storage.Add(key, string(body), cookie.Value)
+	err = s.storage.Add(key, string(body), userSession.Value)
 	if err != nil {
 		logger.Log.Error(err)
 		if err == storage.ErrConflict {
@@ -63,7 +63,7 @@ func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Reques
 	}
 	url := body.URL
 
-	cookie, err := request.Cookie("shortener_session")
+	userSession, err := request.Cookie("shortener_session")
 	if err != nil {
 		http.Error(writer, "User unauthorized", http.StatusBadRequest)
 		return
@@ -75,7 +75,7 @@ func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Reques
 	}
 
 	key := s.generator.CreateKey()
-	err = s.storage.Add(key, url, cookie.Value)
+	err = s.storage.Add(key, url, userSession.Value)
 	if err != nil {
 		if err == storage.ErrConflict {
 			shortURL, err := s.storage.GetByOriginURL(url)
