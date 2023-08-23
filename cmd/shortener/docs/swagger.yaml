@@ -1,0 +1,10 @@
+basePath: /
+host: localhost:8080
+info:
+  contact:
+    email: arsenzhar@yandex.ru
+  description: Сервис сокращения URL.
+  title: URLShortener API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

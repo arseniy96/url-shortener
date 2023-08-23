@@ -15,11 +15,11 @@ func TestStorage_Get(t *testing.T) {
 	m.EXPECT().FindRecord(gomock.Any(), "testS").Return(Record{OriginalURL: "http://test.ru"}, nil)
 
 	type fields struct {
-		Links      map[string]string
-		filename   string
-		dataWriter *DataWriter
-		database   DatabaseInterface
-		mode       int
+		Links    map[string]string
+		filename string
+		dWriter  *dataWriter
+		database DatabaseInterface
+		mode     int
 	}
 	type args struct {
 		key string
@@ -47,7 +47,7 @@ func TestStorage_Get(t *testing.T) {
 			s := &Storage{
 				Links:      tt.fields.Links,
 				filename:   tt.fields.filename,
-				dataWriter: tt.fields.dataWriter,
+				dataWriter: tt.fields.dWriter,
 				database:   tt.fields.database,
 				mode:       tt.fields.mode,
 			}

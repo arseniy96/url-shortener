@@ -28,6 +28,8 @@ func (lw *loggingResponseWriter) WriteHeader(statusCode int) {
 	lw.responseData.status = statusCode
 }
 
+// LoggerMiddleware – миддлваря для логирования запросов
+// Логируем метод запроса, путь, время выполнения, статус и размер ответа
 func LoggerMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

@@ -13,6 +13,15 @@ import (
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
+// @Title URLShortener API
+// @Description Сервис сокращения URL.
+// @Version 1.0
+
+// @Contact.email arsenzhar@yandex.ru
+
+// @BasePath /
+// @Host localhost:8080
+
 func main() {
 	if err := run(); err != nil {
 		panic(err)

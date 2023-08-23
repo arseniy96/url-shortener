@@ -8,6 +8,7 @@ type Repository interface {
 	Get(string) (string, error)
 }
 
+// NewGenerator – функция инициализации генератора случайных строк
 func NewGenerator(store Repository) Generator {
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
@@ -22,6 +23,7 @@ type Generator struct {
 	storage Repository
 }
 
+// CreateKey – функция, которая генерирует строку из случайных символов
 func (g Generator) CreateKey() string {
 	symbols := make([]rune, 6)
 	for i := range symbols {

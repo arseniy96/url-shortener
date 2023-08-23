@@ -11,6 +11,14 @@ import (
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
+// CreateLink godoc
+// @Summary      Сокращает ссылку
+// @Description  Получает на вход ссылку и отдаёт в ответе сокращённый вариант
+// @Accept       plain
+// @Produce      plain
+// @Param        q    query     string  false  "name search by q"  Format(email)
+// @Success      200
+// @Router       / [post]
 func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 	var resp []byte
 	var respStatus int
@@ -51,6 +59,14 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 	writer.Write(resp)
 }
 
+// CreateLinkJSON godoc
+// @Summary      Сокращает ссылку
+// @Description  Получает на вход ссылку и отдаёт в ответе сокращённый вариант
+// @Accept       json
+// @Produce      json
+// @Param        models.RequestCreateLink
+// @Success      200 {object} models.ResponseCreateLink
+// @Router       /api/shorten [post]
 func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Request) {
 	var body models.RequestCreateLink
 	var resp models.ResponseCreateLink

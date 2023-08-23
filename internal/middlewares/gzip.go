@@ -29,7 +29,7 @@ func (w *gzipWriter) Close() {
 	w.ZWriter.Close()
 }
 
-func NewGzipWriter(w http.ResponseWriter) *gzipWriter {
+func newGzipWriter(w http.ResponseWriter) *gzipWriter {
 	return &gzipWriter{
 		Writer:  w,
 		ZWriter: gzip.NewWriter(w),
@@ -64,6 +64,7 @@ func newGzipReader(reader io.ReadCloser) (*gzipReader, error) {
 	}, nil
 }
 
+// GzipMiddleware – миддлваря для сжатия
 func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		currentWriter := w
@@ -74,7 +75,7 @@ func GzipMiddleware(next http.Handler) http.Handler {
 		}
 
 		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			newWriter := NewGzipWriter(w)
+			newWriter := newGzipWriter(w)
 			currentWriter = newWriter
 			defer newWriter.Close()
 		}

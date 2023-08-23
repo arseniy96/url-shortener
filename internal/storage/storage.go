@@ -43,28 +43,38 @@ type DatabaseInterface interface {
 	DeleteBatchRecords(context.Context, []Record) error
 }
 
+// Storage – структура, которая даёт доступ к хранилищу
 type Storage struct {
 	Links      map[string]string
 	filename   string
-	dataWriter *DataWriter
+	dataWriter *dataWriter
 	database   DatabaseInterface
 	mode       int
 }
 
+// Record – записать в БД
 type Record struct {
-	UUID        string `json:"uuid"`
-	ShortULR    string `json:"short_url"`
+	// UUID – идентификатор записи в формате uuid
+	UUID string `json:"uuid"`
+	// ShortULR – сокращённая ссылка
+	ShortULR string `json:"short_url"`
+	// OriginalURL – оригинальная ссылка
 	OriginalURL string `json:"original_url"`
-	DeletedFlag bool   `json:"is_deleted"`
-	UserID      int    `json:"user_id"`
+	// DeletedFlag – флаг, показывающий, что запись была перенесена в архив
+	DeletedFlag bool `json:"is_deleted"`
+	// UserID – идентификатор пользователя в системе
+	UserID int `json:"user_id"`
 }
 
+// User – структура, которая хранит инфу пользователя
 type User struct {
-	UserID int    `json:"user_id"`
+	// UserID – идентификатор пользователя в системе
+	UserID int `json:"user_id"`
+	// Cookie – cookie пользователя в текущей сессии
 	Cookie string `json:"cookie"`
 }
 
-type DataWriter struct {
+type dataWriter struct {
 	file    *os.File
 	encoder *json.Encoder
 }
@@ -74,29 +84,30 @@ type DeleteURLMessage struct {
 	ShortURLs  []string
 }
 
-func NewDataWriter(filename string) (*DataWriter, error) {
+func newDataWriter(filename string) (*dataWriter, error) {
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		logger.Log.Error("open file error", zap.Error(err))
 		return nil, err
 	}
 
-	return &DataWriter{
+	return &dataWriter{
 		file:    file,
 		encoder: json.NewEncoder(file),
 	}, nil
 }
 
-func (w *DataWriter) WriteData(record *Record) error {
+func (w *dataWriter) writeData(record *Record) error {
 	return w.encoder.Encode(record)
 }
 
-func (w *DataWriter) Close() error {
+func (w *dataWriter) close() error {
 	return w.file.Close()
 }
 
+// NewStorage – функция инициализации хранилища
 func NewStorage(filename, connectionData string) (*Storage, error) {
-	var dataWriter *DataWriter
+	var dataWriter *dataWriter
 	var db *Database
 	var err error
 
@@ -123,6 +134,7 @@ func NewStorage(filename, connectionData string) (*Storage, error) {
 	return &store, nil
 }
 
+// Restore – функция восстановления хранилища из файла и создание БД, если это необходимо
 func (s *Storage) Restore() error {
 	switch s.mode {
 	case FileMode:
@@ -156,6 +168,7 @@ func (s *Storage) Restore() error {
 	return nil
 }
 
+// Add – сохранение оригинальной и сокращённой ссылки в хранилище
 func (s *Storage) Add(key, value, cookie string) error {
 	id := uuid.NewString()
 	record := Record{
@@ -183,15 +196,15 @@ func (s *Storage) Add(key, value, cookie string) error {
 			return err
 		}
 	} else if s.mode == FileMode {
-		dataWriter, err := NewDataWriter(s.filename)
+		dataWriter, err := newDataWriter(s.filename)
 		if err != nil {
 			logger.Log.Error("Open File error", zap.Error(err))
 			return err
 		}
 		s.dataWriter = dataWriter
-		defer s.dataWriter.Close()
+		defer s.dataWriter.close()
 
-		err = s.dataWriter.WriteData(&record)
+		err = s.dataWriter.writeData(&record)
 		if err != nil {
 			logger.Log.Error(zap.Error(err))
 			return err
@@ -201,6 +214,7 @@ func (s *Storage) Add(key, value, cookie string) error {
 	return nil
 }
 
+// Get – получение оригинальной ссылки по сокращённой
 func (s *Storage) Get(key string) (string, error) {
 	if s.mode == DBMode {
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
@@ -221,6 +235,7 @@ func (s *Storage) Get(key string) (string, error) {
 	return value, nil
 }
 
+// GetByOriginURL – получение сокращённой ссылки по оригинальной
 func (s *Storage) GetByOriginURL(originURL string) (string, error) {
 	if s.mode == DBMode {
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
@@ -235,26 +250,25 @@ func (s *Storage) GetByOriginURL(originURL string) (string, error) {
 	return "", errors.New("not database mode")
 }
 
+// AddBatch – сохранение нескольких ссылок
 func (s *Storage) AddBatch(ctx context.Context, records []Record) error {
 	if s.mode == DBMode {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
 		err := s.database.SaveRecordsBatch(ctx, records)
 		if err != nil {
 			logger.Log.Error("save data to database error", zap.Error(err))
 		}
 	} else if s.mode == FileMode {
-		dataWriter, err := NewDataWriter(s.filename)
+		dataWriter, err := newDataWriter(s.filename)
 		if err != nil {
 			logger.Log.Error("Open File error", zap.Error(err))
 		}
 		s.dataWriter = dataWriter
-		defer s.dataWriter.Close()
+		defer s.dataWriter.close()
 	}
 
 	for _, record := range records {
 		if s.mode == FileMode {
-			err := s.dataWriter.WriteData(&record)
+			err := s.dataWriter.writeData(&record)
 			if err != nil {
 				logger.Log.Error(zap.Error(err))
 			}
@@ -265,6 +279,7 @@ func (s *Storage) AddBatch(ctx context.Context, records []Record) error {
 	return nil
 }
 
+// GetByUser – получение всех ссылок авторизованного пользователя
 func (s *Storage) GetByUser(ctx context.Context, cookie string) ([]Record, error) {
 	if s.mode == DBMode {
 		user, err := s.database.FindUserByCookie(ctx, cookie)
@@ -281,6 +296,7 @@ func (s *Storage) GetByUser(ctx context.Context, cookie string) ([]Record, error
 	return nil, errors.New("not database mode")
 }
 
+// FindUserByID – поиск пользователя по userID
 func (s *Storage) FindUserByID(ctx context.Context, userID int) (*User, error) {
 	if s.mode == DBMode {
 		return s.database.FindUserByID(ctx, userID)
@@ -289,6 +305,7 @@ func (s *Storage) FindUserByID(ctx context.Context, userID int) (*User, error) {
 	return nil, errors.New("not database mode")
 }
 
+// CreateUser – создание нового пользователя
 func (s *Storage) CreateUser(ctx context.Context) (*User, error) {
 	if s.mode == DBMode {
 		return s.database.CreateUser(ctx)
@@ -297,6 +314,7 @@ func (s *Storage) CreateUser(ctx context.Context) (*User, error) {
 	return nil, errors.New("not database mode")
 }
 
+// UpdateUser – сохранение cookie пользователя
 func (s *Storage) UpdateUser(ctx context.Context, id int, cookie string) error {
 	if s.mode == DBMode {
 		return s.database.UpdateUser(ctx, id, cookie)
@@ -305,6 +323,7 @@ func (s *Storage) UpdateUser(ctx context.Context, id int, cookie string) error {
 	return errors.New("not database mode")
 }
 
+// DeleteUserURLs – удаление ссылок
 func (s *Storage) DeleteUserURLs(message DeleteURLMessage) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -335,14 +354,17 @@ func (s *Storage) DeleteUserURLs(message DeleteURLMessage) error {
 	return s.database.DeleteBatchRecords(ctx, deletedRecords)
 }
 
+// HealthCheck – проверка работоспособности хранилища
 func (s *Storage) HealthCheck() error {
 	return s.database.HealthCheck()
 }
 
+// CloseConnection – закрытие соединения с БД
 func (s *Storage) CloseConnection() error {
 	return s.database.Close()
 }
 
+// GetMode – получение мода хранилища
 func (s *Storage) GetMode() int {
 	return s.mode
 }
