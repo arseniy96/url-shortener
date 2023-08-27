@@ -14,14 +14,14 @@ func (s *Server) DeleteUserUrls(writer http.ResponseWriter, request *http.Reques
 
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&urls); err != nil {
-		http.Error(writer, "Invalid request", http.StatusBadRequest)
+		http.Error(writer, InvalidRequestErrTxt, http.StatusBadRequest)
 		return
 	}
 
-	userCookie, err := request.Cookie("shortener_session")
+	userCookie, err := request.Cookie(CookieName)
 	if err != nil {
 		logger.Log.Error(err)
-		http.Error(writer, "Invalid cookie", http.StatusUnauthorized)
+		http.Error(writer, InvalidCookieErrTxt, http.StatusUnauthorized)
 		return
 	}
 

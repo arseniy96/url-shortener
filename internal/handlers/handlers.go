@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"time"
 
 	"github.com/arseniy96/url-shortener/internal/config"
 	"github.com/arseniy96/url-shortener/internal/logger"
@@ -34,12 +35,22 @@ type Server struct {
 	DeleteURLSChan chan storage.DeleteURLMessage
 }
 
+const (
+	CookieName             = "shortener_session"
+	DeleteURLSChanSize     = 10
+	InternalBackendErrTxt  = "Internal Backend Error"
+	InvalidCookieErrTxt    = "Invalid Cookie"
+	InvalidRequestErrTxt   = "Invalid request"
+	UserUnauthorizedErrTxt = "User unauthorized"
+	TimeOut                = 3 * time.Second
+)
+
 func NewServer(s Repository, c *config.Options) *Server {
 	server := &Server{
 		storage:        s,
 		generator:      keygenerator.NewGenerator(s),
 		Config:         c,
-		DeleteURLSChan: make(chan storage.DeleteURLMessage, 10),
+		DeleteURLSChan: make(chan storage.DeleteURLMessage, DeleteURLSChanSize),
 	}
 
 	go server.deleteMessageBatch()

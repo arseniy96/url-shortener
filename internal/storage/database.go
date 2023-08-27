@@ -11,12 +11,16 @@ import (
 	"github.com/arseniy96/url-shortener/internal/logger"
 )
 
+const (
+	CreateDBTimeOut = 5 * time.Second
+)
+
 type Database struct {
 	DB *sql.DB
 }
 
 func NewDatabase(connectionData string) (*Database, error) {
-	//connectionData = "host=localhost user=shortener password= dbname=shortener sslmode=disable"
+	// connectionData = "host=localhost user=shortener password= dbname=shortener sslmode=disable"
 	db, err := sql.Open("pgx", connectionData)
 	if err != nil {
 		return nil, err
@@ -68,14 +72,20 @@ func (db *Database) SaveRecordsBatch(ctx context.Context, records []Record) erro
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			logger.Log.Error(err)
+		}
+	}()
 
 	for _, rec := range records {
 		_, err := tx.ExecContext(ctx,
 			`INSERT INTO urls(uuid, short_url, origin_url) VALUES($1, $2, $3)`,
 			rec.UUID, rec.ShortULR, rec.OriginalURL)
 		if err != nil {
-			tx.Rollback()
+			if err2 := tx.Rollback(); err2 != nil {
+				return err2
+			}
 			return err
 		}
 	}
@@ -83,7 +93,7 @@ func (db *Database) SaveRecordsBatch(ctx context.Context, records []Record) erro
 }
 
 func (db *Database) HealthCheck() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
 	if err := db.DB.PingContext(ctx); err != nil {
 		return err
@@ -97,8 +107,8 @@ func (db *Database) Close() error {
 }
 
 func (db *Database) CreateDatabase() error {
-	ctx, close := context.WithTimeout(context.Background(), 5*time.Second)
-	defer close()
+	ctx, cancel := context.WithTimeout(context.Background(), CreateDBTimeOut)
+	defer cancel()
 
 	_, err := db.DB.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS users(
@@ -140,8 +150,11 @@ func (db *Database) FindRecordsByUserID(ctx context.Context, userID int) (record
 	if err != nil {
 		return
 	}
-	defer rows.Close()
-
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.Log.Error(err)
+		}
+	}()
 	for rows.Next() {
 		var rec Record
 		err = rows.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.DeletedFlag)
@@ -217,7 +230,11 @@ func (db *Database) FindRecordsBatchByShortURL(ctx context.Context, urls []strin
 	if err != nil {
 		return
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.Log.Error(err)
+		}
+	}()
 
 	for rows.Next() {
 		var rec Record
@@ -237,7 +254,7 @@ func (db *Database) FindRecordsBatchByShortURL(ctx context.Context, urls []strin
 }
 
 func (db *Database) DeleteBatchRecords(ctx context.Context, records []Record) error {
-	var urls []string
+	urls := make([]string, 0, len(records))
 
 	for _, rec := range records {
 		urls = append(urls, rec.ShortULR)

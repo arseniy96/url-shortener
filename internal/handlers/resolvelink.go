@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -13,11 +14,11 @@ func (s *Server) ResolveLink(writer http.ResponseWriter, request *http.Request) 
 
 	url, err := s.storage.Get(urlID)
 	if err != nil {
-		if err == storage.ErrDeleted {
+		if errors.Is(err, storage.ErrDeleted) {
 			http.Error(writer, "URL was deleted", http.StatusGone)
 			return
 		}
-		http.Error(writer, "Invalid request", http.StatusBadRequest)
+		http.Error(writer, InvalidRequestErrTxt, http.StatusBadRequest)
 		return
 	}
 

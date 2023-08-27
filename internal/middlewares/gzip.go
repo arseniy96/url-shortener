@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/arseniy96/url-shortener/internal/logger"
 )
 
 type gzipWriter struct {
@@ -26,7 +28,10 @@ func (w *gzipWriter) Header() http.Header {
 }
 
 func (w *gzipWriter) Close() {
-	w.ZWriter.Close()
+	err := w.ZWriter.Close()
+	if err != nil {
+		logger.Log.Error(err)
+	}
 }
 
 func newGzipWriter(w http.ResponseWriter) *gzipWriter {
@@ -64,7 +69,7 @@ func newGzipReader(reader io.ReadCloser) (*gzipReader, error) {
 	}, nil
 }
 
-// GzipMiddleware – миддлваря для сжатия
+// GzipMiddleware – миддлваря для сжатия.
 func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		currentWriter := w
@@ -88,7 +93,11 @@ func GzipMiddleware(next http.Handler) http.Handler {
 			}
 
 			r.Body = reader
-			defer reader.Close()
+			defer func() {
+				if err := reader.Close(); err != nil {
+					logger.Log.Error(err)
+				}
+			}()
 		}
 
 		next.ServeHTTP(currentWriter, r)

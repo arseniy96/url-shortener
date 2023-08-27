@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/arseniy96/url-shortener/internal/models"
 	"github.com/arseniy96/url-shortener/internal/storage"
@@ -13,12 +12,13 @@ import (
 
 func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Request) {
 	var body models.RequestCreateLinksBatch
-	var records []storage.Record
 	var response models.ResponseCreateLinksBatch
+
+	records := make([]storage.Record, 0)
 
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&body); err != nil {
-		http.Error(writer, "Invalid request", http.StatusBadRequest)
+		http.Error(writer, InvalidRequestErrTxt, http.StatusBadRequest)
 		return
 	}
 
@@ -39,11 +39,11 @@ func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Requ
 		})
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
 	err := s.storage.AddBatch(ctx, records)
 	if err != nil {
-		http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 
@@ -52,7 +52,7 @@ func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Requ
 
 	encoder := json.NewEncoder(writer)
 	if err := encoder.Encode(response); err != nil {
-		http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 }

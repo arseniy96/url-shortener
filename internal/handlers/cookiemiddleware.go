@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"go.uber.org/zap"
@@ -18,50 +17,54 @@ type Claims struct {
 	UserID int
 }
 
-const SecretKey = "psqy18SWnnqU9"
+const (
+	SecretKey          = "psqy18SWnnqU9"
+	CreateCookieErrTxt = "create cookie error"
+)
 
+// CookieMiddleware - проверяет и устанавливает cookie `shortener_session`.
 func (s *Server) CookieMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	// достаём куку и дешифруем её
 	// если куки нет, смотрим на роут, если /api/user/urls, то отдаём ошибку
 	// если есть кука, проверяем id
-	// если куки нет, или id неправильный – генерируем новую куку и сетим её
+	// если куки нет, или id неправильный – генерируем новую куку и сетим её.
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		cookie, err := r.Cookie("shortener_session")
+		cookie, err := r.Cookie(CookieName)
 		if err != nil {
 			newCookie, err := createNewCookie(s.storage)
 			if err != nil {
-				logger.Log.Error("create cookie error", zap.Error(err))
-				http.Error(w, "Internal Backend Error", http.StatusInternalServerError)
+				logger.Log.Error(CreateCookieErrTxt, zap.Error(err))
+				http.Error(w, InternalBackendErrTxt, http.StatusInternalServerError)
 				return
 			}
 			http.SetCookie(w, &http.Cookie{
-				Name:  "shortener_session",
+				Name:  CookieName,
 				Value: newCookie,
 			})
 			r.AddCookie(&http.Cookie{
-				Name:  "shortener_session",
+				Name:  CookieName,
 				Value: newCookie,
 			})
 		} else if !cookieValid(cookie.Value, s.storage) {
 			if path == "/api/user/urls" {
-				logger.Log.Error("invalid cookie", zap.Error(err))
-				http.Error(w, "invalid cookie", http.StatusUnauthorized)
+				logger.Log.Error(InvalidCookieErrTxt, zap.Error(err))
+				http.Error(w, "invalidCookie", http.StatusUnauthorized)
 				return
 			}
 
 			newCookie, err := createNewCookie(s.storage)
 			if err != nil {
-				logger.Log.Error("create cookie error", zap.Error(err))
-				http.Error(w, "Internal Backend Error", http.StatusInternalServerError)
+				logger.Log.Error(CreateCookieErrTxt, zap.Error(err))
+				http.Error(w, InternalBackendErrTxt, http.StatusInternalServerError)
 				return
 			}
 			http.SetCookie(w, &http.Cookie{
-				Name:  "shortener_session",
+				Name:  CookieName,
 				Value: newCookie,
 			})
 			r.AddCookie(&http.Cookie{
-				Name:  "shortener_session",
+				Name:  CookieName,
 				Value: newCookie,
 			})
 		}
@@ -74,7 +77,7 @@ func createNewCookie(rep Repository) (cookie string, err error) {
 	// генерируем новую куку
 	// сохраняем куку в пользователя
 	if rep.GetMode() == storage.DBMode {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 		defer cancel()
 		user, err := rep.CreateUser(ctx)
 		if err != nil {
@@ -134,7 +137,7 @@ func cookieValid(cookie string, rep Repository) bool {
 		return false
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
 	userID := claims.UserID
 	_, err = rep.FindUserByID(ctx, userID)

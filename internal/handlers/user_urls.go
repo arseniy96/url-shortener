@@ -5,25 +5,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/arseniy96/url-shortener/internal/logger"
 	"github.com/arseniy96/url-shortener/internal/models"
 )
 
 func (s *Server) UserUrls(writer http.ResponseWriter, request *http.Request) {
-	userCookie, err := request.Cookie("shortener_session")
+	userCookie, err := request.Cookie(CookieName)
 	if err != nil {
 		logger.Log.Error(err)
-		http.Error(writer, "Invalid cookie", http.StatusUnauthorized)
+		http.Error(writer, InvalidCookieErrTxt, http.StatusUnauthorized)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancelCtx := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
 	records, err := s.storage.GetByUser(ctx, userCookie.Value)
 	if err != nil {
 		logger.Log.Error(err)
-		http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 	if len(records) == 0 {
@@ -45,7 +44,7 @@ func (s *Server) UserUrls(writer http.ResponseWriter, request *http.Request) {
 
 	encoder := json.NewEncoder(writer)
 	if err := encoder.Encode(response); err != nil {
-		http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 }

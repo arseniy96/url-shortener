@@ -8,7 +8,7 @@ import (
 	"github.com/arseniy96/url-shortener/internal/middlewares"
 )
 
-// NewRouter – функция инициализации роутера
+// NewRouter – функция инициализации роутера.
 func NewRouter(server *handlers.Server) chi.Router {
 	router := chi.NewRouter()
 	router.Use(middlewares.GzipMiddleware, middlewares.LoggerMiddleware)

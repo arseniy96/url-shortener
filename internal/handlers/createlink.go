@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,19 +19,19 @@ import (
 // @Produce      plain
 // @Param        q    query     string  false  "name search by q"  Format(email)
 // @Success      200
-// @Router       / [post]
+// @Router       / [post].
 func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 	var resp []byte
 	var respStatus int
 
 	body, err := io.ReadAll(request.Body)
 	if err != nil || len(body) == 0 {
-		http.Error(writer, "Invalid request", http.StatusBadRequest)
+		http.Error(writer, InvalidRequestErrTxt, http.StatusBadRequest)
 		return
 	}
-	userSession, err := request.Cookie("shortener_session")
+	userSession, err := request.Cookie(CookieName)
 	if err != nil {
-		http.Error(writer, "User unauthorized", http.StatusBadRequest)
+		http.Error(writer, UserUnauthorizedErrTxt, http.StatusBadRequest)
 		return
 	}
 
@@ -39,16 +40,16 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 	err = s.storage.Add(key, string(body), userSession.Value)
 	if err != nil {
 		logger.Log.Error(err)
-		if err == storage.ErrConflict {
+		if errors.Is(err, storage.ErrConflict) {
 			shortURL, err := s.storage.GetByOriginURL(string(body))
 			if err != nil {
-				http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+				http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 				return
 			}
 			respStatus = http.StatusConflict
 			resp = []byte(fmt.Sprintf("%s/%s", s.Config.ResolveHost, shortURL))
 		} else {
-			http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+			http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 			return
 		}
 	} else {
@@ -66,7 +67,7 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 // @Produce      json
 // @Param        models.RequestCreateLink
 // @Success      200 {object} models.ResponseCreateLink
-// @Router       /api/shorten [post]
+// @Router       /api/shorten [post].
 func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Request) {
 	var body models.RequestCreateLink
 	var resp models.ResponseCreateLink
@@ -74,29 +75,29 @@ func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Reques
 
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&body); err != nil {
-		http.Error(writer, "Invalid request", http.StatusBadRequest)
+		http.Error(writer, InvalidRequestErrTxt, http.StatusBadRequest)
 		return
 	}
 	url := body.URL
 
-	userSession, err := request.Cookie("shortener_session")
+	userSession, err := request.Cookie(CookieName)
 	if err != nil {
-		http.Error(writer, "User unauthorized", http.StatusBadRequest)
+		http.Error(writer, UserUnauthorizedErrTxt, http.StatusBadRequest)
 		return
 	}
 
 	if len(url) == 0 {
-		http.Error(writer, "Invalid request", http.StatusBadRequest)
+		http.Error(writer, InvalidRequestErrTxt, http.StatusBadRequest)
 		return
 	}
 
 	key := s.generator.CreateKey()
 	err = s.storage.Add(key, url, userSession.Value)
 	if err != nil {
-		if err == storage.ErrConflict {
+		if errors.Is(err, storage.ErrConflict) {
 			shortURL, err := s.storage.GetByOriginURL(url)
 			if err != nil {
-				http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+				http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 				return
 			}
 			respStatus = http.StatusConflict
@@ -104,7 +105,7 @@ func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Reques
 				Result: fmt.Sprintf("%s/%s", s.Config.ResolveHost, shortURL),
 			}
 		} else {
-			http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+			http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 			return
 		}
 	} else {
@@ -119,7 +120,7 @@ func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Reques
 
 	encoder := json.NewEncoder(writer)
 	if err := encoder.Encode(resp); err != nil {
-		http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 }
