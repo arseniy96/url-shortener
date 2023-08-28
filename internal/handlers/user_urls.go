@@ -18,7 +18,7 @@ func (s *Server) UserUrls(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	ctx, cancelCtx := context.WithTimeout(context.Background(), TimeOut)
-	defer cancel()
+	defer cancelCtx()
 	records, err := s.storage.GetByUser(ctx, userCookie.Value)
 	if err != nil {
 		logger.Log.Error(err)

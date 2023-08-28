@@ -38,6 +38,35 @@ func TestGenerator_CreateKey(t *testing.T) {
 	}
 }
 
+func TestNewGenerator(t *testing.T) {
+	s := NewTestStorage()
+
+	type args struct {
+		store Repository
+	}
+	tests := []struct {
+		name string
+		args args
+		want Generator
+	}{
+		{
+			name: "success init",
+			args: args{
+				store: s,
+			},
+			want: Generator{
+				letters: []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+				storage: s,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, NewGenerator(tt.args.store), "NewGenerator(%v)", tt.args.store)
+		})
+	}
+}
+
 type TestStorage struct {
 	Urls map[string]string
 }
