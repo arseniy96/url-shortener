@@ -23,9 +23,10 @@ const (
 	MemoryMode = iota
 	FileMode
 	DBMode
-	TimeOut        = 3 * time.Second
-	OpenFileErrTxt = "open file error"
-	SaveErrTxt     = "save data to database error"
+	TimeOut         = 3 * time.Second
+	FilePermissions = 0600
+	OpenFileErrTxt  = "open file error"
+	SaveErrTxt      = "save data to database error"
 )
 
 var (
@@ -54,9 +55,9 @@ type DatabaseInterface interface {
 // Storage – структура, которая даёт доступ к хранилищу.
 type Storage struct {
 	Links      map[string]string
-	filename   string
 	dataWriter *dataWriter
 	database   DatabaseInterface
+	filename   string
 	mode       int
 }
 
@@ -76,10 +77,10 @@ type Record struct {
 
 // User – структура, которая хранит инфу пользователя.
 type User struct {
-	// UserID – идентификатор пользователя в системе.
-	UserID int `json:"user_id"`
 	// Cookie – cookie пользователя в текущей сессии.
 	Cookie string `json:"cookie"`
+	// UserID – идентификатор пользователя в системе.
+	UserID int `json:"user_id"`
 }
 
 type dataWriter struct {
@@ -93,7 +94,7 @@ type DeleteURLMessage struct {
 }
 
 func newDataWriter(filename string) (*dataWriter, error) {
-	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, FilePermissions)
 	if err != nil {
 		logger.Log.Error(OpenFileErrTxt, zap.Error(err))
 		return nil, err
@@ -146,7 +147,7 @@ func NewStorage(filename, connectionData string) (*Storage, error) {
 func (s *Storage) Restore() error {
 	switch s.mode {
 	case FileMode:
-		file, err := os.OpenFile(s.filename, os.O_RDONLY|os.O_CREATE, 0666)
+		file, err := os.OpenFile(s.filename, os.O_RDONLY|os.O_CREATE, FilePermissions)
 		if err != nil {
 			return err
 		}
@@ -204,7 +205,7 @@ func (s *Storage) Add(key, value, cookie string) error {
 				return ErrConflict
 			}
 
-			logger.Log.Error("SaveErrTxt", zap.Error(err))
+			logger.Log.Error(SaveErrTxt, zap.Error(err))
 			return err
 		}
 	} else if s.mode == FileMode {
@@ -271,7 +272,7 @@ func (s *Storage) AddBatch(ctx context.Context, records []Record) error {
 	if s.mode == DBMode {
 		err := s.database.SaveRecordsBatch(ctx, records)
 		if err != nil {
-			logger.Log.Error("SaveErrTxt", zap.Error(err))
+			logger.Log.Error(SaveErrTxt, zap.Error(err))
 		}
 	} else if s.mode == FileMode {
 		dataWriter, err := newDataWriter(s.filename)

@@ -4,11 +4,70 @@
         "description": "Сервис сокращения URL.",
         "title": "URLShortener API",
         "contact": {
-            "email": "arsenzhar@yandex.ru"
+            "email": "arsenzhar@yandex.ru."
         },
-        "version": "1.0"
+        "version": "1.0."
     },
-    "host": "localhost:8080",
+    "host": "localhost:8080.",
     "basePath": "/",
-    "paths": {}
+    "paths": {
+        "/": {
+            "post": {
+                "description": "Получает на вход ссылку и отдаёт в ответе сокращённый вариант",
+                "consumes": [
+                    "text/plain"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "summary": "Сокращает ссылку",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "description": "name search by q",
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/shorten": {
+            "post": {
+                "description": "Получает на вход ссылку и отдаёт в ответе сокращённый вариант",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Сокращает ссылку",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResponseCreateLink"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.ResponseCreateLink": {
+            "type": "object",
+            "properties": {
+                "result": {
+                    "description": "Result – сокращённая ссылка.",
+                    "type": "string",
+                    "example": "maIJa1"
+                }
+            }
+        }
+    }
 }

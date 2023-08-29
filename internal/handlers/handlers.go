@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/arseniy96/url-shortener/internal/config"
@@ -37,6 +38,8 @@ type Server struct {
 
 const (
 	CookieName             = "shortener_session"
+	ContentTypeJSON        = "application/json"
+	ContentTypeHeader      = "Content-Type"
 	DeleteURLSChanSize     = 10
 	InternalBackendErrTxt  = "Internal Backend Error"
 	InvalidCookieErrTxt    = "Invalid Cookie"
@@ -66,4 +69,8 @@ func (s *Server) deleteMessageBatch() {
 			continue
 		}
 	}
+}
+
+func buildShortURL(host, path string) string {
+	return fmt.Sprintf("%s/%s", host, path)
 }

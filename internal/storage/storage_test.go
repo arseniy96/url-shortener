@@ -23,8 +23,6 @@ func TestStorage_Get(t *testing.T) {
 
 	type fields struct {
 		Links    map[string]string
-		filename string
-		dWriter  *dataWriter
 		database DatabaseInterface
 		mode     int
 	}
@@ -32,11 +30,11 @@ func TestStorage_Get(t *testing.T) {
 		key string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   string
-		want1  error
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr bool
 	}{
 		{
 			name: "success Get from database",
@@ -44,9 +42,9 @@ func TestStorage_Get(t *testing.T) {
 				database: m,
 				mode:     DBMode,
 			},
-			args:  args{key: "testS"},
-			want:  "http://test.ru",
-			want1: nil,
+			args:    args{key: "testS"},
+			want:    "http://test.ru",
+			wantErr: false,
 		},
 		{
 			name: "success Get from database(deleted key)",
@@ -54,9 +52,9 @@ func TestStorage_Get(t *testing.T) {
 				database: m,
 				mode:     DBMode,
 			},
-			args:  args{key: "testD"},
-			want:  "",
-			want1: ErrDeleted,
+			args:    args{key: "testD"},
+			want:    "",
+			wantErr: true,
 		},
 		{
 			name: "success Get from memory",
@@ -64,9 +62,9 @@ func TestStorage_Get(t *testing.T) {
 				mode:  MemoryMode,
 				Links: links,
 			},
-			args:  args{key: "test1"},
-			want:  "http://ya.ru",
-			want1: nil,
+			args:    args{key: "test1"},
+			want:    "http://ya.ru",
+			wantErr: false,
 		},
 		{
 			name: "failed Get from memory",
@@ -74,26 +72,24 @@ func TestStorage_Get(t *testing.T) {
 				mode:  MemoryMode,
 				Links: links,
 			},
-			args:  args{key: "test2"},
-			want:  "",
-			want1: ErrDeleted,
+			args:    args{key: "test2"},
+			want:    "",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Storage{
-				Links:      tt.fields.Links,
-				filename:   tt.fields.filename,
-				dataWriter: tt.fields.dWriter,
-				database:   tt.fields.database,
-				mode:       tt.fields.mode,
+				Links:    tt.fields.Links,
+				database: tt.fields.database,
+				mode:     tt.fields.mode,
 			}
-			got, got1 := s.Get(tt.args.key)
+			got, err := s.Get(tt.args.key)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Restore() error = %v, wantErr %v", err, tt.wantErr)
+			}
 			if got != tt.want {
 				t.Errorf("Get() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("Get() got1 = %v, want %v", got1, tt.want1)
 			}
 		})
 	}
@@ -137,11 +133,9 @@ func TestStorage_Restore(t *testing.T) {
 	m.EXPECT().CreateDatabase().Return(nil)
 
 	type fields struct {
-		Links      map[string]string
-		filename   string
-		dataWriter *dataWriter
-		database   DatabaseInterface
-		mode       int
+		Links    map[string]string
+		database DatabaseInterface
+		mode     int
 	}
 	tests := []struct {
 		name    string
@@ -350,13 +344,10 @@ func TestStorage_CreateUser(t *testing.T) {
 		database   DatabaseInterface
 		mode       int
 	}
-	type args struct {
-		ctx context.Context
-	}
+
 	tests := []struct {
 		name    string
 		fields  fields
-		args    args
 		want    *User
 		wantErr bool
 	}{
@@ -365,7 +356,6 @@ func TestStorage_CreateUser(t *testing.T) {
 			fields: fields{
 				mode: MemoryMode,
 			},
-			args:    args{ctx: context.Background()},
 			want:    nil,
 			wantErr: true,
 		},
@@ -375,7 +365,6 @@ func TestStorage_CreateUser(t *testing.T) {
 				database: m,
 				mode:     DBMode,
 			},
-			args:    args{ctx: context.Background()},
 			want:    &User{},
 			wantErr: false,
 		},
@@ -389,7 +378,7 @@ func TestStorage_CreateUser(t *testing.T) {
 				database:   tt.fields.database,
 				mode:       tt.fields.mode,
 			}
-			got, err := s.CreateUser(tt.args.ctx)
+			got, err := s.CreateUser(context.Background())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -417,7 +406,6 @@ func TestStorage_UpdateUser(t *testing.T) {
 		mode       int
 	}
 	type args struct {
-		ctx    context.Context
 		id     int
 		cookie string
 	}
@@ -433,7 +421,6 @@ func TestStorage_UpdateUser(t *testing.T) {
 				mode: MemoryMode,
 			},
 			args: args{
-				ctx:    context.Background(),
 				id:     0,
 				cookie: "",
 			},
@@ -446,7 +433,6 @@ func TestStorage_UpdateUser(t *testing.T) {
 				mode:     DBMode,
 			},
 			args: args{
-				ctx:    context.Background(),
 				id:     1,
 				cookie: "",
 			},
@@ -459,7 +445,6 @@ func TestStorage_UpdateUser(t *testing.T) {
 				mode:     DBMode,
 			},
 			args: args{
-				ctx:    context.Background(),
 				id:     2,
 				cookie: "",
 			},
@@ -475,7 +460,7 @@ func TestStorage_UpdateUser(t *testing.T) {
 				database:   tt.fields.database,
 				mode:       tt.fields.mode,
 			}
-			if err := s.UpdateUser(tt.args.ctx, tt.args.id, tt.args.cookie); (err != nil) != tt.wantErr {
+			if err := s.UpdateUser(context.Background(), tt.args.id, tt.args.cookie); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateUser() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -493,14 +478,11 @@ func TestStorage_FindUserByID(t *testing.T) {
 	m.EXPECT().FindUserByID(gomock.Any(), 2).Return(nil, fmt.Errorf("find user error"))
 
 	type fields struct {
-		Links      map[string]string
-		filename   string
-		dataWriter *dataWriter
-		database   DatabaseInterface
-		mode       int
+		Links    map[string]string
+		database DatabaseInterface
+		mode     int
 	}
 	type args struct {
-		ctx    context.Context
 		userID int
 	}
 	tests := []struct {
@@ -516,7 +498,6 @@ func TestStorage_FindUserByID(t *testing.T) {
 				mode: MemoryMode,
 			},
 			args: args{
-				ctx:    context.Background(),
 				userID: 0,
 			},
 			want:    nil,
@@ -529,7 +510,6 @@ func TestStorage_FindUserByID(t *testing.T) {
 				mode:     DBMode,
 			},
 			args: args{
-				ctx:    context.Background(),
 				userID: 1,
 			},
 			want:    &successUser,
@@ -542,7 +522,6 @@ func TestStorage_FindUserByID(t *testing.T) {
 				mode:     DBMode,
 			},
 			args: args{
-				ctx:    context.Background(),
 				userID: 2,
 			},
 			want:    nil,
@@ -552,13 +531,11 @@ func TestStorage_FindUserByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Storage{
-				Links:      tt.fields.Links,
-				filename:   tt.fields.filename,
-				dataWriter: tt.fields.dataWriter,
-				database:   tt.fields.database,
-				mode:       tt.fields.mode,
+				Links:    tt.fields.Links,
+				database: tt.fields.database,
+				mode:     tt.fields.mode,
 			}
-			got, err := s.FindUserByID(tt.args.ctx, tt.args.userID)
+			got, err := s.FindUserByID(context.Background(), tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindUserByID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -572,11 +549,7 @@ func TestStorage_FindUserByID(t *testing.T) {
 
 func TestStorage_GetMode(t *testing.T) {
 	type fields struct {
-		Links      map[string]string
-		filename   string
-		dataWriter *dataWriter
-		database   DatabaseInterface
-		mode       int
+		mode int
 	}
 	tests := []struct {
 		name   string
@@ -603,6 +576,7 @@ func TestStorage_GetMode(t *testing.T) {
 	}
 }
 
+//nolint:dupl // it's ok
 func TestStorage_HealthCheck(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -641,6 +615,7 @@ func TestStorage_HealthCheck(t *testing.T) {
 	}
 }
 
+//nolint:dupl // it's ok
 func TestStorage_CloseConnection(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -797,7 +772,6 @@ func TestStorage_AddBatch(t *testing.T) {
 		mode     int
 	}
 	type args struct {
-		ctx     context.Context
 		records []Record
 	}
 	tests := []struct {
@@ -814,7 +788,6 @@ func TestStorage_AddBatch(t *testing.T) {
 				mode:     DBMode,
 			},
 			args: args{
-				ctx:     context.Background(),
 				records: successRecords,
 			},
 			wantErr: false,
@@ -827,7 +800,7 @@ func TestStorage_AddBatch(t *testing.T) {
 				database: tt.fields.database,
 				mode:     tt.fields.mode,
 			}
-			if err := s.AddBatch(tt.args.ctx, tt.args.records); (err != nil) != tt.wantErr {
+			if err := s.AddBatch(context.Background(), tt.args.records); (err != nil) != tt.wantErr {
 				t.Errorf("AddBatch() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -854,7 +827,6 @@ func TestStorage_GetByUser(t *testing.T) {
 		mode     int
 	}
 	type args struct {
-		ctx    context.Context
 		cookie string
 	}
 	tests := []struct {
@@ -871,7 +843,6 @@ func TestStorage_GetByUser(t *testing.T) {
 				mode:     MemoryMode,
 			},
 			args: args{
-				ctx:    nil,
 				cookie: "",
 			},
 			want:    nil,
@@ -884,7 +855,6 @@ func TestStorage_GetByUser(t *testing.T) {
 				mode:     DBMode,
 			},
 			args: args{
-				ctx:    context.Background(),
 				cookie: "success_user",
 			},
 			want:    successRecords,
@@ -897,7 +867,6 @@ func TestStorage_GetByUser(t *testing.T) {
 				mode:     DBMode,
 			},
 			args: args{
-				ctx:    context.Background(),
 				cookie: "failed_user",
 			},
 			want:    nil,
@@ -910,7 +879,6 @@ func TestStorage_GetByUser(t *testing.T) {
 				mode:     DBMode,
 			},
 			args: args{
-				ctx:    context.Background(),
 				cookie: "success_user2",
 			},
 			want:    nil,
@@ -923,7 +891,7 @@ func TestStorage_GetByUser(t *testing.T) {
 				database: tt.fields.database,
 				mode:     tt.fields.mode,
 			}
-			got, err := s.GetByUser(tt.args.ctx, tt.args.cookie)
+			got, err := s.GetByUser(context.Background(), tt.args.cookie)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetByUser() error = %v, wantErr %v", err, tt.wantErr)
 				return

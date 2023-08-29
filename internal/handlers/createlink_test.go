@@ -14,6 +14,7 @@ import (
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
+//nolint:dupl // it's ok
 func TestServer_CreateLink(t *testing.T) {
 	c := &config.Options{
 		Host:         "localhost:8080",
@@ -86,6 +87,7 @@ func TestServer_CreateLink(t *testing.T) {
 	}
 }
 
+//nolint:dupl // it's ok
 func TestServer_CreateLinkJSON(t *testing.T) {
 	c := &config.Options{
 		Host:         "localhost:8080",

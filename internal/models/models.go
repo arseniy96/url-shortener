@@ -9,7 +9,7 @@ type RequestCreateLink struct {
 // ResponseCreateLink – структура ответа на роут `/api/shorten`.
 type ResponseCreateLink struct {
 	// Result – сокращённая ссылка.
-	Result string `json:"result"`
+	Result string `json:"result" example:"maIJa1"`
 }
 
 // RequestCreateLinksBatch – структура запроса на роут `/api/shorten/batch`.

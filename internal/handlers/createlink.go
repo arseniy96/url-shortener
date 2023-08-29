@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -47,17 +46,20 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 				return
 			}
 			respStatus = http.StatusConflict
-			resp = []byte(fmt.Sprintf("%s/%s", s.Config.ResolveHost, shortURL))
+			resp = []byte(buildShortURL(s.Config.ResolveHost, shortURL))
 		} else {
 			http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 			return
 		}
 	} else {
 		respStatus = http.StatusCreated
-		resp = []byte(fmt.Sprintf("%s/%s", s.Config.ResolveHost, key))
+		resp = []byte(buildShortURL(s.Config.ResolveHost, key))
 	}
 	writer.WriteHeader(respStatus)
-	writer.Write(resp)
+	_, err = writer.Write(resp)
+	if err != nil {
+		logger.Log.Error(err)
+	}
 }
 
 // CreateLinkJSON godoc
@@ -65,7 +67,6 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 // @Description  Получает на вход ссылку и отдаёт в ответе сокращённый вариант
 // @Accept       json
 // @Produce      json
-// @Param        models.RequestCreateLink
 // @Success      200 {object} models.ResponseCreateLink
 // @Router       /api/shorten [post].
 func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Request) {
@@ -102,7 +103,7 @@ func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Reques
 			}
 			respStatus = http.StatusConflict
 			resp = models.ResponseCreateLink{
-				Result: fmt.Sprintf("%s/%s", s.Config.ResolveHost, shortURL),
+				Result: buildShortURL(s.Config.ResolveHost, shortURL),
 			}
 		} else {
 			http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
@@ -110,12 +111,12 @@ func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Reques
 		}
 	} else {
 		resp = models.ResponseCreateLink{
-			Result: fmt.Sprintf("%s/%s", s.Config.ResolveHost, key),
+			Result: buildShortURL(s.Config.ResolveHost, key),
 		}
 		respStatus = http.StatusCreated
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set(ContentTypeHeader, ContentTypeJSON)
 	writer.WriteHeader(respStatus)
 
 	encoder := json.NewEncoder(writer)

@@ -9,6 +9,12 @@ import (
 	"github.com/arseniy96/url-shortener/internal/logger"
 )
 
+const (
+	AcceptEncoding  = "Accept-Encoding"
+	ContentEncoding = "Content-Encoding"
+	EncodingType    = "gzip"
+)
+
 type gzipWriter struct {
 	Writer  http.ResponseWriter
 	ZWriter *gzip.Writer
@@ -19,7 +25,7 @@ func (w *gzipWriter) Write(b []byte) (int, error) {
 }
 
 func (w *gzipWriter) WriteHeader(statusCode int) {
-	w.Writer.Header().Set("Content-Encoding", "gzip")
+	w.Writer.Header().Set(ContentEncoding, EncodingType)
 	w.Writer.WriteHeader(statusCode)
 }
 
@@ -79,13 +85,13 @@ func GzipMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		if strings.Contains(r.Header.Get(AcceptEncoding), EncodingType) {
 			newWriter := newGzipWriter(w)
 			currentWriter = newWriter
 			defer newWriter.Close()
 		}
 
-		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+		if strings.Contains(r.Header.Get(ContentEncoding), EncodingType) {
 			reader, err := newGzipReader(r.Body)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)

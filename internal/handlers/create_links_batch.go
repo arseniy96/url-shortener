@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/arseniy96/url-shortener/internal/models"
@@ -35,7 +34,7 @@ func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Requ
 
 		response = append(response, models.ResponseLinks{
 			CorrelationID: rec.UUID,
-			ShortURL:      fmt.Sprintf("%s/%s", s.Config.ResolveHost, key),
+			ShortURL:      buildShortURL(s.Config.ResolveHost, key),
 		})
 	}
 
@@ -47,7 +46,7 @@ func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set(ContentTypeHeader, ContentTypeJSON)
 	writer.WriteHeader(http.StatusCreated)
 
 	encoder := json.NewEncoder(writer)

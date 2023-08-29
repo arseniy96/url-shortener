@@ -1,10 +1,48 @@
 basePath: /
-host: localhost:8080
+definitions:
+  models.ResponseCreateLink:
+    properties:
+      result:
+        description: Result – сокращённая ссылка.
+        example: maIJa1
+        type: string
+    type: object
+host: localhost:8080.
 info:
   contact:
-    email: arsenzhar@yandex.ru
+    email: arsenzhar@yandex.ru.
   description: Сервис сокращения URL.
   title: URLShortener API
-  version: "1.0"
-paths: {}
+  version: 1.0.
+paths:
+  /:
+    post:
+      consumes:
+      - text/plain
+      description: Получает на вход ссылку и отдаёт в ответе сокращённый вариант
+      parameters:
+      - description: name search by q
+        format: email
+        in: query
+        name: q
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+      summary: Сокращает ссылку
+  /api/shorten:
+    post:
+      consumes:
+      - application/json
+      description: Получает на вход ссылку и отдаёт в ответе сокращённый вариант
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResponseCreateLink'
+      summary: Сокращает ссылку
 swagger: "2.0"

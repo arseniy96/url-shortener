@@ -31,5 +31,8 @@ func (s *Server) DeleteUserUrls(writer http.ResponseWriter, request *http.Reques
 	}
 
 	writer.WriteHeader(http.StatusAccepted)
-	writer.Write([]byte("ok"))
+	_, err = writer.Write([]byte("ok"))
+	if err != nil {
+		logger.Log.Error(err)
+	}
 }

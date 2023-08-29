@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/arseniy96/url-shortener/internal/logger"
@@ -33,13 +32,13 @@ func (s *Server) UserUrls(writer http.ResponseWriter, request *http.Request) {
 	response := models.ResponseUserURLS{}
 	for _, rec := range records {
 		respEl := models.ResponseUserURL{
-			ShortURL:    fmt.Sprintf("%s/%s", s.Config.ResolveHost, rec.ShortULR),
+			ShortURL:    buildShortURL(s.Config.ResolveHost, rec.ShortULR),
 			OriginalURL: rec.OriginalURL,
 		}
 		response = append(response, respEl)
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set(ContentTypeHeader, ContentTypeJSON)
 	writer.WriteHeader(http.StatusOK)
 
 	encoder := json.NewEncoder(writer)

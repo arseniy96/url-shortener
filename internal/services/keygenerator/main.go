@@ -20,8 +20,8 @@ func NewGenerator(store Repository) Generator {
 }
 
 type Generator struct {
-	letters []rune
 	storage Repository
+	letters []rune
 }
 
 // CreateKey – функция, которая генерирует строку из случайных символов.

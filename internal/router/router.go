@@ -17,6 +17,7 @@ func NewRouter(server *handlers.Server) chi.Router {
 	router.Get("/ping", server.CookieMiddleware(server.Ping))
 	router.Post("/api/shorten", server.CookieMiddleware(server.CreateLinkJSON))
 	router.Post("/api/shorten/batch", server.CookieMiddleware(server.CreateLinksBatch))
+	//nolint:goconst // it's ok
 	router.Get("/api/user/urls", server.CookieMiddleware(server.UserUrls))
 	router.Delete("/api/user/urls", server.CookieMiddleware(server.DeleteUserUrls))
 

@@ -221,7 +221,7 @@ func (db *Database) UpdateUser(ctx context.Context, id int, cookie string) error
 }
 
 func (db *Database) FindRecordsBatchByShortURL(ctx context.Context, urls []string) (records []Record, err error) {
-	params := "{" + strings.Join(urls, ",") + "}"
+	params := paramsBuilder(urls)
 
 	rows, err := db.DB.QueryContext(ctx,
 		"SELECT uuid, short_url, origin_url, user_id, is_deleted FROM urls WHERE short_url = ANY($1::text[]);",
@@ -260,9 +260,13 @@ func (db *Database) DeleteBatchRecords(ctx context.Context, records []Record) er
 		urls = append(urls, rec.ShortULR)
 	}
 
-	params := "{" + strings.Join(urls, ",") + "}"
+	params := paramsBuilder(urls)
 
 	_, err := db.DB.ExecContext(ctx, "UPDATE urls SET is_deleted=true WHERE short_url = ANY($1::text[]);",
 		params)
 	return err
+}
+
+func paramsBuilder(urls []string) string {
+	return "{" + strings.Join(urls, ",") + "}"
 }
