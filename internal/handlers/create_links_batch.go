@@ -9,6 +9,16 @@ import (
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
+// CreateLinksBatch godoc
+// @Summary      Сокращает массив ссылок
+// @Description  Получает на вход массив ссылок и отдаёт в ответе сокращённый вариант
+// @Accept       json
+// @Produce      json
+// @Param 		 data body models.RequestCreateLinksBatch true "Массив URL для сокращения"
+// @Success      201 {object} models.ResponseCreateLinksBatch
+// @Failure		 400 {object} object{} "Неверный формат запроса"
+// @Failure		 500 {object} object{} "Ошибка сервера"
+// @Router       /api/shorten/batch [post] .
 func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Request) {
 	var body models.RequestCreateLinksBatch
 	var response models.ResponseCreateLinksBatch

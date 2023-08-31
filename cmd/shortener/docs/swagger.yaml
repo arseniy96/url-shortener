@@ -1,10 +1,40 @@
 basePath: /
 definitions:
+  models.RequestCreateLink:
+    properties:
+      url:
+        description: URL – ссылка, которую необходимо сократить.
+        type: string
+    type: object
+  models.RequestLinks:
+    properties:
+      correlation_id:
+        description: CorrelationID – ID ссылки.
+        example: 58039b0a-480d-11ee-9ace-0e6250a0eb02
+        format: uuid
+        type: string
+      original_url:
+        description: OriginalURL – ссылка, которую необходимо сократить.
+        example: https://ya.ru
+        type: string
+    type: object
   models.ResponseCreateLink:
     properties:
       result:
         description: Result – сокращённая ссылка.
-        example: maIJa1
+        example: http://localhost:8080/maIJa1
+        type: string
+    type: object
+  models.ResponseLinks:
+    properties:
+      correlation_id:
+        description: CorrelationID – ID ссылки.
+        example: 58039b0a-480d-11ee-9ace-0e6250a0eb02
+        format: uuid
+        type: string
+      short_url:
+        description: ShortURL – сокращённая ссылка.
+        example: http://localhost:8080/maIJa1
         type: string
     type: object
 host: localhost:8080.
@@ -21,28 +51,174 @@ paths:
       - text/plain
       description: Получает на вход ссылку и отдаёт в ответе сокращённый вариант
       parameters:
-      - description: name search by q
-        format: email
-        in: query
-        name: q
-        type: string
+      - description: URL для сокращения
+        example: https://ya.ru
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
       produces:
       - text/plain
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Сокращённая ссылка
+          schema:
+            type: string
+        "400":
+          description: Неверный формат запроса
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
       summary: Сокращает ссылку
+  /{url_id}:
+    get:
+      description: По сокращённой ссылке делает редирект на оригинальную ссылку
+      parameters:
+      - description: ID Short URL
+        example: maIJa1
+        in: path
+        name: url_id
+        required: true
+        type: string
+      responses:
+        "307":
+          description: Temporary Redirect
+          headers:
+            Location:
+              description: http://localhost:8080/maIJa1
+              type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: object
+      summary: Делает редирект на оригинальную ссылку
   /api/shorten:
     post:
       consumes:
       - application/json
       description: Получает на вход ссылку и отдаёт в ответе сокращённый вариант
+      parameters:
+      - description: URL для сокращения
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.RequestCreateLink'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ResponseCreateLink'
+        "400":
+          description: Неверный формат запроса
+          schema:
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: object
+      summary: Сокращает ссылку
+  /api/shorten/batch:
+    post:
+      consumes:
+      - application/json
+      description: Получает на вход массив ссылок и отдаёт в ответе сокращённый вариант
+      parameters:
+      - description: Массив URL для сокращения
+        in: body
+        name: data
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.RequestLinks'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/models.ResponseLinks'
+            type: array
+        "400":
+          description: Неверный формат запроса
+          schema:
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: object
+      summary: Сокращает массив ссылок
+  /api/user/urls:
+    delete:
+      consumes:
+      - application/json
+      description: Получает на вход массив ссылок и удаляет их
+      parameters:
+      - description: URL для удаления
+        in: body
+        name: data
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - text/plain
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            type: string
+        "400":
+          description: Неверный формат запроса
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+      summary: Удаляет ссылки пользователя
+    get:
+      description: Отдаёт все ссылки пользователя
       produces:
       - application/json
       responses:
         "200":
           description: OK
+        "204":
+          description: У пользователя нет ссылок
           schema:
-            $ref: '#/definitions/models.ResponseCreateLink'
-      summary: Сокращает ссылку
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: object
+      summary: URL пользователя
+  /ping:
+    get:
+      description: Отвечает OK, если работает
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: object
+      summary: Ping
 swagger: "2.0"

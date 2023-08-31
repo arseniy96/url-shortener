@@ -14,11 +14,13 @@ import (
 // CreateLink godoc
 // @Summary      Сокращает ссылку
 // @Description  Получает на вход ссылку и отдаёт в ответе сокращённый вариант
-// @Accept       plain
+// @Accept		 plain
 // @Produce      plain
-// @Param        q    query     string  false  "name search by q"  Format(email)
-// @Success      200
-// @Router       / [post].
+// @Param        data body string true "URL для сокращения" example(https://ya.ru)
+// @Success      201 {string} string "Сокращённая ссылка"
+// @Failure		 400 {string} _ "Неверный формат запроса"
+// @Failure		 500 {string} _ "Ошибка сервера"
+// @Router       / [post] .
 func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 	var resp []byte
 	var respStatus int
@@ -67,8 +69,11 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 // @Description  Получает на вход ссылку и отдаёт в ответе сокращённый вариант
 // @Accept       json
 // @Produce      json
-// @Success      200 {object} models.ResponseCreateLink
-// @Router       /api/shorten [post].
+// @Param 		 data body models.RequestCreateLink true "URL для сокращения"
+// @Success      201 {object} models.ResponseCreateLink
+// @Failure		 400 {object} object{} "Неверный формат запроса"
+// @Failure		 500 {object} object{} "Ошибка сервера"
+// @Router       /api/shorten [post] .
 func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Request) {
 	var body models.RequestCreateLink
 	var resp models.ResponseCreateLink

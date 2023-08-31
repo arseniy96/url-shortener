@@ -16,9 +16,7 @@ import (
 // @Title URLShortener API
 // @Description Сервис сокращения URL.
 // @Version 1.0.
-
 // @Contact.email arsenzhar@yandex.ru.
-
 // @BasePath /
 // @Host localhost:8080.
 

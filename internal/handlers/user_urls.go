@@ -9,6 +9,15 @@ import (
 	"github.com/arseniy96/url-shortener/internal/models"
 )
 
+// UserUrls godoc
+// @Summary      URL пользователя
+// @Description  Отдаёт все ссылки пользователя
+// @Produce		 json
+// @Success      200
+// @Failure		 204 {object} object{} "У пользователя нет ссылок"
+// @Failure		 401 {object} object{} "Unauthorized"
+// @Failure		 500 {object} object{} "Ошибка сервера"
+// @Router       /api/user/urls [get] .
 func (s *Server) UserUrls(writer http.ResponseWriter, request *http.Request) {
 	userCookie, err := request.Cookie(CookieName)
 	if err != nil {
