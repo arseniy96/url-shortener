@@ -1,3 +1,4 @@
+// Package keygenerator отвечает за генерацию последовательностей случайных символов.
 package keygenerator
 
 import (
@@ -8,6 +9,7 @@ type Repository interface {
 	Get(string) (string, error)
 }
 
+// NewGenerator – функция инициализации генератора случайных строк.
 func NewGenerator(store Repository) Generator {
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
@@ -18,12 +20,14 @@ func NewGenerator(store Repository) Generator {
 }
 
 type Generator struct {
-	letters []rune
 	storage Repository
+	letters []rune
 }
 
+// CreateKey – функция, которая генерирует строку из случайных символов.
 func (g Generator) CreateKey() string {
-	symbols := make([]rune, 6)
+	size := 6
+	symbols := make([]rune, size)
 	for i := range symbols {
 		symbols[i] = g.letters[rand.Intn(len(g.letters))]
 	}

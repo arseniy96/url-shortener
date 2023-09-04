@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	_ "net/http/pprof"
 
 	"go.uber.org/zap"
 
@@ -11,6 +12,13 @@ import (
 	"github.com/arseniy96/url-shortener/internal/router"
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
+
+// @Title URLShortener API
+// @Description Сервис сокращения URL.
+// @Version 1.0.
+// @Contact.email arsenzhar@yandex.ru.
+// @BasePath /
+// @Host localhost:8080.
 
 func main() {
 	if err := run(); err != nil {
@@ -29,7 +37,11 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	defer serverStorage.CloseConnection()
+	defer func() {
+		if err := serverStorage.CloseConnection(); err != nil {
+			logger.Log.Error(err)
+		}
+	}()
 
 	if err := serverStorage.Restore(); err != nil {
 		logger.Log.Error("Restore storage error", zap.Error(err))

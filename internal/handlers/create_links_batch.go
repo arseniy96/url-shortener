@@ -3,22 +3,31 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/arseniy96/url-shortener/internal/models"
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
+// CreateLinksBatch godoc
+// @Summary      Сокращает массив ссылок
+// @Description  Получает на вход массив ссылок и отдаёт в ответе сокращённый вариант
+// @Accept       json
+// @Produce      json
+// @Param 		 data body models.RequestCreateLinksBatch true "Массив URL для сокращения"
+// @Success      201 {object} models.ResponseCreateLinksBatch
+// @Failure		 400 {object} object{} "Неверный формат запроса"
+// @Failure		 500 {object} object{} "Ошибка сервера"
+// @Router       /api/shorten/batch [post] .
 func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Request) {
 	var body models.RequestCreateLinksBatch
-	var records []storage.Record
 	var response models.ResponseCreateLinksBatch
+
+	records := make([]storage.Record, 0)
 
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&body); err != nil {
-		http.Error(writer, "Invalid request", http.StatusBadRequest)
+		http.Error(writer, InvalidRequestErrTxt, http.StatusBadRequest)
 		return
 	}
 
@@ -35,24 +44,24 @@ func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Requ
 
 		response = append(response, models.ResponseLinks{
 			CorrelationID: rec.UUID,
-			ShortURL:      fmt.Sprintf("%s/%s", s.Config.ResolveHost, key),
+			ShortURL:      buildShortURL(s.Config.ResolveHost, key),
 		})
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
 	err := s.storage.AddBatch(ctx, records)
 	if err != nil {
-		http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set(ContentTypeHeader, ContentTypeJSON)
 	writer.WriteHeader(http.StatusCreated)
 
 	encoder := json.NewEncoder(writer)
 	if err := encoder.Encode(response); err != nil {
-		http.Error(writer, "Internal Backend Error", http.StatusInternalServerError)
+		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 }

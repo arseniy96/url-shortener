@@ -14,6 +14,7 @@ import (
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
+//nolint:dupl // it's ok
 func TestServer_CreateLink(t *testing.T) {
 	c := &config.Options{
 		Host:         "localhost:8080",
@@ -75,7 +76,7 @@ func TestServer_CreateLink(t *testing.T) {
 			}
 
 			request.AddCookie(&http.Cookie{
-				Name:  "shortener_session",
+				Name:  CookieName,
 				Value: "test",
 			})
 			s.CreateLink(writer, request)
@@ -86,6 +87,7 @@ func TestServer_CreateLink(t *testing.T) {
 	}
 }
 
+//nolint:dupl // it's ok
 func TestServer_CreateLinkJSON(t *testing.T) {
 	c := &config.Options{
 		Host:         "localhost:8080",
@@ -147,7 +149,7 @@ func TestServer_CreateLinkJSON(t *testing.T) {
 			}
 
 			request.AddCookie(&http.Cookie{
-				Name:  "shortener_session",
+				Name:  CookieName,
 				Value: "test",
 			})
 			s.CreateLinkJSON(writer, request)
@@ -190,18 +192,20 @@ func (s *TestStorage) GetByOriginURL(_ string) (string, error) {
 }
 
 func (s *TestStorage) GetByUser(_ context.Context, _ string) ([]storage.Record, error) {
-	return nil, nil
+	return []storage.Record{}, nil
 }
 
 func (s *TestStorage) CreateUser(_ context.Context) (*storage.User, error) {
-	return nil, nil
+	var u *storage.User
+	return u, nil
 }
 
 func (s *TestStorage) FindUserByID(_ context.Context, _ int) (*storage.User, error) {
-	return nil, nil
+	var u *storage.User
+	return u, nil
 }
 
-func (s *TestStorage) DeleteUserURLs(context.Context, storage.DeleteURLMessage) error {
+func (s *TestStorage) DeleteUserURLs(storage.DeleteURLMessage) error {
 	return nil
 }
 

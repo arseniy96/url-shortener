@@ -5,6 +5,14 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/arseniy96/url-shortener/internal/logger"
+)
+
+const (
+	AcceptEncoding  = "Accept-Encoding"
+	ContentEncoding = "Content-Encoding"
+	EncodingType    = "gzip"
 )
 
 type gzipWriter struct {
@@ -17,7 +25,7 @@ func (w *gzipWriter) Write(b []byte) (int, error) {
 }
 
 func (w *gzipWriter) WriteHeader(statusCode int) {
-	w.Writer.Header().Set("Content-Encoding", "gzip")
+	w.Writer.Header().Set(ContentEncoding, EncodingType)
 	w.Writer.WriteHeader(statusCode)
 }
 
@@ -26,10 +34,13 @@ func (w *gzipWriter) Header() http.Header {
 }
 
 func (w *gzipWriter) Close() {
-	w.ZWriter.Close()
+	err := w.ZWriter.Close()
+	if err != nil {
+		logger.Log.Error(err)
+	}
 }
 
-func NewGzipWriter(w http.ResponseWriter) *gzipWriter {
+func newGzipWriter(w http.ResponseWriter) *gzipWriter {
 	return &gzipWriter{
 		Writer:  w,
 		ZWriter: gzip.NewWriter(w),
@@ -64,17 +75,23 @@ func newGzipReader(reader io.ReadCloser) (*gzipReader, error) {
 	}, nil
 }
 
+// GzipMiddleware – миддлваря для сжатия.
 func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		currentWriter := w
 
-		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			newWriter := NewGzipWriter(w)
+		if strings.Contains(r.URL.Path, "pprof") {
+			next.ServeHTTP(currentWriter, r)
+			return
+		}
+
+		if strings.Contains(r.Header.Get(AcceptEncoding), EncodingType) {
+			newWriter := newGzipWriter(w)
 			currentWriter = newWriter
 			defer newWriter.Close()
 		}
 
-		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+		if strings.Contains(r.Header.Get(ContentEncoding), EncodingType) {
 			reader, err := newGzipReader(r.Body)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -82,7 +99,11 @@ func GzipMiddleware(next http.Handler) http.Handler {
 			}
 
 			r.Body = reader
-			defer reader.Close()
+			defer func() {
+				if err := reader.Close(); err != nil {
+					logger.Log.Error(err)
+				}
+			}()
 		}
 
 		next.ServeHTTP(currentWriter, r)

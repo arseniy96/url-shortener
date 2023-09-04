@@ -7,19 +7,29 @@ import (
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
+// Ping godoc
+// @Summary      Ping
+// @Description  Отвечает OK, если работает
+// @Produce      plain
+// @Success      200 {string} string{OK}
+// @Failure		 500 {object} object{} "Ошибка сервера"
+// @Router       /ping [get] .
 func (s *Server) Ping(writer http.ResponseWriter, request *http.Request) {
 	if s.storage.GetMode() != storage.DBMode {
-		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 
 	err := s.storage.HealthCheck()
 	if err != nil {
 		logger.Log.Error(err)
-		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("OK"))
+	_, err = writer.Write([]byte("OK"))
+	if err != nil {
+		logger.Log.Error(err)
+	}
 }

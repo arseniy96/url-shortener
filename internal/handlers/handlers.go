@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/arseniy96/url-shortener/internal/config"
@@ -21,7 +22,7 @@ type Repository interface {
 	CreateUser(context.Context) (*storage.User, error)
 	UpdateUser(context.Context, int, string) error
 	FindUserByID(context.Context, int) (*storage.User, error)
-	DeleteUserURLs(context.Context, storage.DeleteURLMessage) error
+	DeleteUserURLs(storage.DeleteURLMessage) error
 }
 
 type Generate interface {
@@ -35,12 +36,24 @@ type Server struct {
 	DeleteURLSChan chan storage.DeleteURLMessage
 }
 
+const (
+	CookieName             = "shortener_session"
+	ContentTypeJSON        = "application/json"
+	ContentTypeHeader      = "Content-Type"
+	DeleteURLSChanSize     = 10
+	InternalBackendErrTxt  = "Internal Backend Error"
+	InvalidCookieErrTxt    = "Invalid Cookie"
+	InvalidRequestErrTxt   = "Invalid request"
+	UserUnauthorizedErrTxt = "User unauthorized"
+	TimeOut                = 3 * time.Second
+)
+
 func NewServer(s Repository, c *config.Options) *Server {
 	server := &Server{
 		storage:        s,
 		generator:      keygenerator.NewGenerator(s),
 		Config:         c,
-		DeleteURLSChan: make(chan storage.DeleteURLMessage, 10),
+		DeleteURLSChan: make(chan storage.DeleteURLMessage, DeleteURLSChanSize),
 	}
 
 	go server.deleteMessageBatch()
@@ -49,19 +62,15 @@ func NewServer(s Repository, c *config.Options) *Server {
 }
 
 func (s *Server) deleteMessageBatch() {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	for {
-		select {
-		case msg := <-s.DeleteURLSChan:
-			err := s.storage.DeleteUserURLs(ctx, msg)
-			if err != nil {
-				logger.Log.Error(err)
-				continue
-			}
-		default:
+	for msg := range s.DeleteURLSChan {
+		err := s.storage.DeleteUserURLs(msg)
+		if err != nil {
+			logger.Log.Error(err)
 			continue
 		}
 	}
+}
+
+func buildShortURL(host, path string) string {
+	return fmt.Sprintf("%s/%s", host, path)
 }
