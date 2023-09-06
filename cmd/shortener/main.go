@@ -13,6 +13,12 @@ import (
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
+var (
+	buildVersion = "N/A"
+	buildDate    = "N/A"
+	buildCommit  = "N/A"
+)
+
 // @Title URLShortener API
 // @Description Сервис сокращения URL.
 // @Version 1.0.
@@ -50,6 +56,9 @@ func run() error {
 	s := handlers.NewServer(serverStorage, appConfig)
 	r := router.NewRouter(s)
 
+	logger.Log.Infof("Build version: %v", buildVersion)
+	logger.Log.Infof("Build date: %v", buildDate)
+	logger.Log.Infof("Build commit: %v", buildCommit)
 	logger.Log.Infow("Running server", "address", s.Config.Host)
 	return http.ListenAndServe(s.Config.Host, r)
 }
