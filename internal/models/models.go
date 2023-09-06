@@ -1,3 +1,4 @@
+// Package models – содержит описание моделей
 package models
 
 // RequestCreateLink – структура запроса на роут `/api/shorten`.

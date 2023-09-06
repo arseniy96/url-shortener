@@ -1,3 +1,4 @@
+// Package handlers – содержит реализацию обработчиков запросов
 package handlers
 
 import (
