@@ -9,6 +9,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+
+	"github.com/arseniy96/url-shortener/internal/logger"
 )
 
 func TestStorage_Get(t *testing.T) {
@@ -172,9 +174,14 @@ func TestStorage_Restore(t *testing.T) {
 }
 
 func TestStorage_Add(t *testing.T) {
+	if err := logger.Initialize("info"); err != nil {
+		panic(err)
+	}
+
 	links := make(map[string]string)
 	successUser := User{UserID: 1}
 	failedUser := User{UserID: 2}
+	failedUser2 := User{UserID: 3}
 	pgErr := &pgconn.PgError{Code: pgerrcode.ForeignKeyViolation}
 
 	ctrl := gomock.NewController(t)
@@ -183,8 +190,11 @@ func TestStorage_Add(t *testing.T) {
 	m := NewMockDatabaseInterface(ctrl)
 	m.EXPECT().FindUserByCookie(gomock.Any(), "success_user").Return(&successUser, nil)
 	m.EXPECT().FindUserByCookie(gomock.Any(), "failed_user").Return(&failedUser, nil)
+	m.EXPECT().FindUserByCookie(gomock.Any(), "failed_user2").Return(&failedUser2, nil)
+	m.EXPECT().FindUserByCookie(gomock.Any(), "missing_user").Return(nil, fmt.Errorf("missing_user"))
 	m.EXPECT().SaveRecord(gomock.Any(), gomock.Any(), successUser.UserID).Return(nil)
 	m.EXPECT().SaveRecord(gomock.Any(), gomock.Any(), failedUser.UserID).Return(fmt.Errorf("%w", pgErr))
+	m.EXPECT().SaveRecord(gomock.Any(), gomock.Any(), failedUser2.UserID).Return(fmt.Errorf("someError"))
 
 	type fields struct {
 		Links      map[string]string
@@ -229,6 +239,34 @@ func TestStorage_Add(t *testing.T) {
 				key:    "existed",
 				value:  "http://ya.ru",
 				cookie: "failed_user",
+			},
+			wantErr: true,
+		},
+		{
+			name: "failed user",
+			fields: fields{
+				database: m,
+				mode:     DBMode,
+				Links:    links,
+			},
+			args: args{
+				key:    "test",
+				value:  "http://ya.ru",
+				cookie: "missing_user",
+			},
+			wantErr: true,
+		},
+		{
+			name: "save error",
+			fields: fields{
+				database: m,
+				mode:     DBMode,
+				Links:    links,
+			},
+			args: args{
+				key:    "test",
+				value:  "http://ya.ru",
+				cookie: "failed_user2",
 			},
 			wantErr: true,
 		},
@@ -757,14 +795,12 @@ func TestStorage_DeleteUserURLs(t *testing.T) {
 
 func TestStorage_AddBatch(t *testing.T) {
 	successRecords := []Record{{ShortULR: "test", OriginalURL: "https://test.ru"}}
-	failedRecords := []Record{{ShortULR: "test2", OriginalURL: "https://test2.ru"}}
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	m := NewMockDatabaseInterface(ctrl)
 	m.EXPECT().SaveRecordsBatch(gomock.Any(), successRecords).Return(nil).AnyTimes()
-	m.EXPECT().SaveRecordsBatch(gomock.Any(), failedRecords).Return(fmt.Errorf("error")).AnyTimes()
 
 	type fields struct {
 		Links    map[string]string
@@ -786,6 +822,18 @@ func TestStorage_AddBatch(t *testing.T) {
 				Links:    make(map[string]string),
 				database: m,
 				mode:     DBMode,
+			},
+			args: args{
+				records: successRecords,
+			},
+			wantErr: false,
+		},
+		{
+			name: "success in memory mode",
+			fields: fields{
+				Links:    make(map[string]string),
+				database: m,
+				mode:     MemoryMode,
 			},
 			args: args{
 				records: successRecords,

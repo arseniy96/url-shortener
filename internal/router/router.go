@@ -1,4 +1,4 @@
-// Package router – роутер
+// Package router – роутер.
 package router
 
 import (
