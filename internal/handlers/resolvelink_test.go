@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/arseniy96/url-shortener/internal/config"
+	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
 func TestServer_ResolveLink(t *testing.T) {
@@ -17,7 +18,6 @@ func TestServer_ResolveLink(t *testing.T) {
 		Host:         "localhost:8080",
 		ResolveHost:  "http://localhost:8080",
 		LoggingLevel: "debug",
-		Filename:     "",
 	}
 	type fields struct {
 		storage   Repository
@@ -37,24 +37,36 @@ func TestServer_ResolveLink(t *testing.T) {
 			name:  "Invalid request",
 			urlID: "Some",
 			fields: fields{
-				storage:   NewTestStorage(),
+				storage:   NewTestStorage(storage.DBMode),
 				generator: NewTestGenerator(),
 				config:    c,
 			},
 			want: want{
-				expectedCode: 400,
+				expectedCode: http.StatusBadRequest,
 			},
 		},
 		{
 			name:  "Valid request",
 			urlID: "test",
 			fields: fields{
-				storage:   NewTestStorage(),
+				storage:   NewTestStorage(storage.DBMode),
 				generator: NewTestGenerator(),
 				config:    c,
 			},
 			want: want{
-				expectedCode: 307,
+				expectedCode: http.StatusTemporaryRedirect,
+			},
+		},
+		{
+			name:  "resolve deleted url",
+			urlID: "deleted",
+			fields: fields{
+				storage:   NewTestStorage(storage.DBMode),
+				generator: NewTestGenerator(),
+				config:    c,
+			},
+			want: want{
+				expectedCode: http.StatusGone,
 			},
 		},
 	}

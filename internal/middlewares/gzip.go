@@ -1,3 +1,4 @@
+// Package middlewares – содержит middleware для обработки запросов.
 package middlewares
 
 import (

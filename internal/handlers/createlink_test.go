@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/arseniy96/url-shortener/internal/config"
+	"github.com/arseniy96/url-shortener/internal/logger"
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
@@ -20,12 +22,16 @@ func TestServer_CreateLink(t *testing.T) {
 		Host:         "localhost:8080",
 		ResolveHost:  "http://localhost:8080",
 		LoggingLevel: "debug",
-		Filename:     "",
 	}
+	if err := logger.Initialize(c.LoggingLevel); err != nil {
+		panic(err)
+	}
+
 	type fields struct {
-		storage   Repository
-		generator Generate
-		config    *config.Options
+		storage    Repository
+		generator  Generate
+		config     *config.Options
+		cookieName string
 	}
 	type want struct {
 		expectedResponse string
@@ -41,9 +47,10 @@ func TestServer_CreateLink(t *testing.T) {
 			name: "Invalid Body",
 			body: "",
 			fields: fields{
-				storage:   NewTestStorage(),
-				generator: NewTestGenerator(),
-				config:    c,
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: CookieName,
 			},
 			want: want{
 				expectedCode:     http.StatusBadRequest,
@@ -54,13 +61,56 @@ func TestServer_CreateLink(t *testing.T) {
 			name: "Valid request",
 			body: "https://ya.ru",
 			fields: fields{
-				storage:   NewTestStorage(),
-				generator: NewTestGenerator(),
-				config:    c,
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: CookieName,
 			},
 			want: want{
 				expectedCode:     http.StatusCreated,
 				expectedResponse: `http://localhost:8080/test`,
+			},
+		},
+		{
+			name: "Unauthorized",
+			body: "https://ya.ru",
+			fields: fields{
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: "InvalidCookie",
+			},
+			want: want{
+				expectedCode:     http.StatusBadRequest,
+				expectedResponse: "User unauthorized\n",
+			},
+		},
+		{
+			name: "duplicate error",
+			body: "https://double_value.ru",
+			fields: fields{
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: CookieName,
+			},
+			want: want{
+				expectedCode:     http.StatusConflict,
+				expectedResponse: "http://localhost:8080/",
+			},
+		},
+		{
+			name: "internal error",
+			body: "https://bad_test.ru",
+			fields: fields{
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: CookieName,
+			},
+			want: want{
+				expectedCode:     http.StatusInternalServerError,
+				expectedResponse: "Internal Backend Error\n",
 			},
 		},
 	}
@@ -76,7 +126,7 @@ func TestServer_CreateLink(t *testing.T) {
 			}
 
 			request.AddCookie(&http.Cookie{
-				Name:  CookieName,
+				Name:  tt.fields.cookieName,
 				Value: "test",
 			})
 			s.CreateLink(writer, request)
@@ -93,12 +143,16 @@ func TestServer_CreateLinkJSON(t *testing.T) {
 		Host:         "localhost:8080",
 		ResolveHost:  "http://localhost:8080",
 		LoggingLevel: "debug",
-		Filename:     "",
 	}
+	if err := logger.Initialize(c.LoggingLevel); err != nil {
+		panic(err)
+	}
+
 	type fields struct {
-		storage   Repository
-		generator Generate
-		config    *config.Options
+		storage    Repository
+		generator  Generate
+		config     *config.Options
+		cookieName string
 	}
 	type want struct {
 		expectedResponse string
@@ -114,9 +168,10 @@ func TestServer_CreateLinkJSON(t *testing.T) {
 			name: "Invalid Body",
 			body: "{}",
 			fields: fields{
-				storage:   NewTestStorage(),
-				generator: NewTestGenerator(),
-				config:    c,
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: CookieName,
 			},
 			want: want{
 				expectedCode:     http.StatusBadRequest,
@@ -127,13 +182,56 @@ func TestServer_CreateLinkJSON(t *testing.T) {
 			name: "Valid request",
 			body: `{ "url": "https://ya.ru" }`,
 			fields: fields{
-				storage:   NewTestStorage(),
-				generator: NewTestGenerator(),
-				config:    c,
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: CookieName,
 			},
 			want: want{
 				expectedCode:     http.StatusCreated,
 				expectedResponse: "{\"result\":\"http://localhost:8080/test\"}\n",
+			},
+		},
+		{
+			name: "Unauthorized",
+			body: `{}`,
+			fields: fields{
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: "invalid",
+			},
+			want: want{
+				expectedCode:     http.StatusBadRequest,
+				expectedResponse: "User unauthorized\n",
+			},
+		},
+		{
+			name: "internal error",
+			body: `{ "url": "https://bad_test.ru" }`,
+			fields: fields{
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: CookieName,
+			},
+			want: want{
+				expectedCode:     http.StatusInternalServerError,
+				expectedResponse: "Internal Backend Error\n",
+			},
+		},
+		{
+			name: "duplicate error",
+			body: `{ "url": "https://double_value.ru" }`,
+			fields: fields{
+				storage:    NewTestStorage(storage.DBMode),
+				generator:  NewTestGenerator(),
+				config:     c,
+				cookieName: CookieName,
+			},
+			want: want{
+				expectedCode:     http.StatusConflict,
+				expectedResponse: "{\"result\":\"http://localhost:8080/\"}\n",
 			},
 		},
 	}
@@ -149,7 +247,7 @@ func TestServer_CreateLinkJSON(t *testing.T) {
 			}
 
 			request.AddCookie(&http.Cookie{
-				Name:  CookieName,
+				Name:  tt.fields.cookieName,
 				Value: "test",
 			})
 			s.CreateLinkJSON(writer, request)
@@ -162,27 +260,44 @@ func TestServer_CreateLinkJSON(t *testing.T) {
 
 type TestStorage struct {
 	Urls map[string]string
+	mode int
 }
 
-func NewTestStorage() *TestStorage {
+func NewTestStorage(mode int) *TestStorage {
 	return &TestStorage{
 		Urls: make(map[string]string),
+		mode: mode,
 	}
 }
 
-func (s *TestStorage) Add(_, _, _ string) error {
-	s.Urls["test"] = "Test"
-	return nil
+func (s *TestStorage) Add(_, value, _ string) error {
+	switch value {
+	case "https://bad_test.ru":
+		return errors.New("SomeError")
+	case "https://double_value.ru":
+		return storage.ErrConflict
+	default:
+		s.Urls["test"] = "Test"
+		return nil
+	}
 }
 
-func (s *TestStorage) AddBatch(ctx context.Context, _ []storage.Record) error {
+func (s *TestStorage) AddBatch(ctx context.Context, records []storage.Record) error {
+	for _, rec := range records {
+		if rec.OriginalURL == "https://bad_test.ru" {
+			return fmt.Errorf("AddBatchError")
+		}
+	}
 	return nil
 }
 
 func (s *TestStorage) Get(key string) (string, error) {
-	if key == "test" {
+	switch key {
+	case "test":
 		return "test", nil
-	} else {
+	case "deleted":
+		return "", storage.ErrDeleted
+	default:
 		return "", fmt.Errorf("Error")
 	}
 }
@@ -191,7 +306,18 @@ func (s *TestStorage) GetByOriginURL(_ string) (string, error) {
 	return "", nil
 }
 
-func (s *TestStorage) GetByUser(_ context.Context, _ string) ([]storage.Record, error) {
+func (s *TestStorage) GetByUser(_ context.Context, cookie string) ([]storage.Record, error) {
+	switch cookie {
+	case "valid":
+		return []storage.Record{{
+			ShortULR:    "test",
+			OriginalURL: "https://ya.ru",
+		}}, nil
+	case "invalid":
+		return []storage.Record{}, storage.ErrNoDBMode
+	case "empty":
+		return []storage.Record{}, nil
+	}
 	return []storage.Record{}, nil
 }
 
@@ -218,7 +344,7 @@ func (s *TestStorage) HealthCheck() error {
 }
 
 func (s *TestStorage) GetMode() int {
-	return 0
+	return s.mode
 }
 
 type TestGenerator struct{}
