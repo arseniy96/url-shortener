@@ -10,6 +10,7 @@ import (
 	"github.com/arseniy96/url-shortener/internal/handlers"
 	"github.com/arseniy96/url-shortener/internal/logger"
 	"github.com/arseniy96/url-shortener/internal/router"
+	"github.com/arseniy96/url-shortener/internal/services/mycrypto"
 	"github.com/arseniy96/url-shortener/internal/storage"
 )
 
@@ -60,5 +61,12 @@ func run() error {
 	logger.Log.Infof("Build date: %v", buildDate)
 	logger.Log.Infof("Build commit: %v", buildCommit)
 	logger.Log.Infow("Running server", "address", s.Config.Host)
+	if appConfig.EnableHTTPS {
+		certFile, keyFile, err := mycrypto.LoadCryptoFiles()
+		if err != nil {
+			return err
+		}
+		return http.ListenAndServeTLS(s.Config.Host, certFile, keyFile, r)
+	}
 	return http.ListenAndServe(s.Config.Host, r)
 }
