@@ -16,7 +16,7 @@ func TestInitConfig(t *testing.T) {
 				Host:         "localhost:8080",
 				ResolveHost:  "http://localhost:8080",
 				LoggingLevel: "info",
-				Filename:     "/tmp/short-url-db.json",
+				Filename:     "",
 			},
 		},
 	}

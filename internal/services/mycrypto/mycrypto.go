@@ -17,6 +17,8 @@ const (
 	CertFilePath    = "./cert/cert.pem"
 	KeyFilePath     = "./cert/key.pem"
 	FilePermissions = 0600
+	CertNumber      = 1711
+	KeySize         = 4096
 )
 
 func LoadCryptoFiles() (string, string, error) {
@@ -40,13 +42,14 @@ func LoadCryptoFiles() (string, string, error) {
 	// создаём шаблон сертификата
 	cert := &x509.Certificate{
 		// указываем уникальный номер сертификата
-		SerialNumber: big.NewInt(1711),
+		SerialNumber: big.NewInt(CertNumber),
 		// заполняем базовую информацию о владельце сертификата
 		Subject: pkix.Name{
 			Organization: []string{"MyOrganization"},
 			Country:      []string{"RU"},
 		},
 		// разрешаем использование сертификата для 127.0.0.1 и ::1
+		//nolint:gomnd // it's localhost ip
 		IPAddresses: []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
 		// сертификат верен, начиная со времени создания
 		NotBefore: time.Now(),
@@ -62,7 +65,7 @@ func LoadCryptoFiles() (string, string, error) {
 	// создаём новый приватный RSA-ключ длиной 4096 бит
 	// обратите внимание, что для генерации ключа и сертификата
 	// используется rand.Reader в качестве источника случайных данных
-	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	privateKey, err := rsa.GenerateKey(rand.Reader, KeySize)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,14 +78,21 @@ func LoadCryptoFiles() (string, string, error) {
 
 	// кодируем сертификат и ключ в формате PEM, который
 	// используется для хранения и обмена криптографическими ключами
-	pem.Encode(certFile, &pem.Block{
+	err = pem.Encode(certFile, &pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: certBytes,
 	})
+	if err != nil {
+		return "", "", err
+	}
 
-	pem.Encode(keyFile, &pem.Block{
+	err = pem.Encode(keyFile, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
 	})
+	if err != nil {
+		return "", "", err
+	}
+
 	return CertFilePath, KeyFilePath, nil
 }

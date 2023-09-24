@@ -25,19 +25,19 @@ type Options struct {
 	Filename string `env:"FILE_STORAGE_PATH" json:"file_storage_path"`
 	// ConnectionData – DSN для БД.
 	ConnectionData string `env:"DATABASE_DSN" json:"database_dsn"`
-	// EnableHTTPS – HTTPS mode
-	EnableHTTPS bool `env:"ENABLE_HTTPS" json:"enable_https"`
 	// ConfigPath – путь до файла с настройками
 	ConfigPath string `env:"CONFIG"`
+	// EnableHTTPS – HTTPS mode
+	EnableHTTPS bool `env:"ENABLE_HTTPS" json:"enable_https"`
 }
 
 // InitConfig – функция для инициализации конфигурации приложения.
 func InitConfig() *Options {
 	options := &Options{}
 
-	flag.StringVar(&options.Host, "a", "", "server host with port")
-	flag.StringVar(&options.ResolveHost, "b", "", "resolve link address")
-	flag.StringVar(&options.LoggingLevel, "l", "", "log level")
+	flag.StringVar(&options.Host, "a", "localhost:8080", "server host with port")
+	flag.StringVar(&options.ResolveHost, "b", "http://localhost:8080", "resolve link address")
+	flag.StringVar(&options.LoggingLevel, "l", "info", "log level")
 	flag.StringVar(&options.Filename, "f", "", "storage file")
 	flag.StringVar(&options.ConnectionData, "d", "", "database connection data")
 	flag.BoolVar(&options.EnableHTTPS, "s", false, "HTTPS mode")

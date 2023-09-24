@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"go.uber.org/zap"
 
@@ -61,12 +67,39 @@ func run() error {
 	logger.Log.Infof("Build date: %v", buildDate)
 	logger.Log.Infof("Build commit: %v", buildCommit)
 	logger.Log.Infow("Running server", "address", s.Config.Host)
+
+	srv := http.Server{Addr: s.Config.Host, Handler: r}
+	conClosed := make(chan struct{})
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+
+	go func() {
+		<-sigint
+		// получили сигнал
+		fmt.Println("get signal")
+		if err := srv.Shutdown(context.Background()); err != nil {
+			logger.Log.Errorf("HTTP server Shutdown: %v", err)
+		}
+		close(conClosed)
+	}()
+
+	var finalErr error
 	if appConfig.EnableHTTPS {
 		certFile, keyFile, err := mycrypto.LoadCryptoFiles()
 		if err != nil {
 			return err
 		}
-		return http.ListenAndServeTLS(s.Config.Host, certFile, keyFile, r)
+		finalErr = srv.ListenAndServeTLS(certFile, keyFile)
+	} else {
+		finalErr = srv.ListenAndServe()
 	}
-	return http.ListenAndServe(s.Config.Host, r)
+
+	<-conClosed
+	fmt.Println("graceful shutdown")
+
+	if errors.Is(finalErr, http.ErrServerClosed) {
+		return nil
+	}
+
+	return finalErr
 }
