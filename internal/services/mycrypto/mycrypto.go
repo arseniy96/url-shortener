@@ -6,11 +6,12 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"log"
 	"math/big"
 	"net"
 	"os"
 	"time"
+
+	"github.com/arseniy96/url-shortener/internal/logger"
 )
 
 const (
@@ -67,13 +68,15 @@ func LoadCryptoFiles() (string, string, error) {
 	// используется rand.Reader в качестве источника случайных данных
 	privateKey, err := rsa.GenerateKey(rand.Reader, KeySize)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log.Error(err)
+		return "", "", err
 	}
 
 	// создаём сертификат x.509
 	certBytes, err := x509.CreateCertificate(rand.Reader, cert, cert, &privateKey.PublicKey, privateKey)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log.Error(err)
+		return "", "", err
 	}
 
 	// кодируем сертификат и ключ в формате PEM, который
@@ -83,6 +86,7 @@ func LoadCryptoFiles() (string, string, error) {
 		Bytes: certBytes,
 	})
 	if err != nil {
+		logger.Log.Error(err)
 		return "", "", err
 	}
 
@@ -91,6 +95,7 @@ func LoadCryptoFiles() (string, string, error) {
 		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
 	})
 	if err != nil {
+		logger.Log.Error(err)
 		return "", "", err
 	}
 

@@ -6,7 +6,6 @@ package config
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"os"
 
 	"dario.cat/mergo"
@@ -32,7 +31,7 @@ type Options struct {
 }
 
 // InitConfig – функция для инициализации конфигурации приложения.
-func InitConfig() *Options {
+func InitConfig() (*Options, error) {
 	options := &Options{}
 
 	flag.StringVar(&options.Host, "a", "localhost:8080", "server host with port")
@@ -46,19 +45,17 @@ func InitConfig() *Options {
 
 	err := env.Parse(options)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if options.ConfigPath != "" {
 		_, err := mergeSettings(options, options.ConfigPath)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
-	fmt.Println(options)
-
-	return options
+	return options, nil
 }
 
 func mergeSettings(op *Options, configPath string) (*Options, error) {
@@ -75,9 +72,6 @@ func mergeSettings(op *Options, configPath string) (*Options, error) {
 	if err = mergo.Merge(op, config); err != nil {
 		return nil, err
 	}
-
-	fmt.Println(config)
-	fmt.Println(op)
 
 	return op, err
 }

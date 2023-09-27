@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	_ "net/http/pprof"
-	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -18,6 +18,10 @@ import (
 	"github.com/arseniy96/url-shortener/internal/router"
 	"github.com/arseniy96/url-shortener/internal/services/mycrypto"
 	"github.com/arseniy96/url-shortener/internal/storage"
+)
+
+const (
+	timeoutServerShutdown = 5 * time.Second
 )
 
 var (
@@ -40,7 +44,10 @@ func main() {
 }
 
 func run() error {
-	appConfig := config.InitConfig()
+	appConfig, err := config.InitConfig()
+	if err != nil {
+		return err
+	}
 
 	if err := logger.Initialize(appConfig.LoggingLevel); err != nil {
 		return err
@@ -48,6 +55,7 @@ func run() error {
 
 	serverStorage, err := storage.NewStorage(appConfig.Filename, appConfig.ConnectionData)
 	if err != nil {
+		logger.Log.Error(err)
 		return err
 	}
 	defer func() {
@@ -68,19 +76,28 @@ func run() error {
 	logger.Log.Infof("Build commit: %v", buildCommit)
 	logger.Log.Infow("Running server", "address", s.Config.Host)
 
-	srv := http.Server{Addr: s.Config.Host, Handler: r}
-	conClosed := make(chan struct{})
-	sigint := make(chan os.Signal, 1)
-	signal.Notify(sigint, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+	ctx, cancelCtx := signal.NotifyContext(context.Background(), syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+	defer cancelCtx()
 
+	srv := http.Server{Addr: s.Config.Host, Handler: r}
+
+	wg := &sync.WaitGroup{}
+	defer func() {
+		wg.Wait()
+	}()
+
+	wg.Add(1)
 	go func() {
-		<-sigint
-		// получили сигнал
-		fmt.Println("get signal")
-		if err := srv.Shutdown(context.Background()); err != nil {
-			logger.Log.Errorf("HTTP server Shutdown: %v", err)
+		defer logger.Log.Info("server has been shutdown")
+		defer wg.Done()
+		<-ctx.Done()
+
+		logger.Log.Info("app got a signal")
+		shutdownTimeoutCtx, cancelShutdownTimeoutCtx := context.WithTimeout(context.Background(), timeoutServerShutdown)
+		defer cancelShutdownTimeoutCtx()
+		if err := srv.Shutdown(shutdownTimeoutCtx); err != nil {
+			logger.Log.Errorf("an error occurred during server shutdown: %v", err)
 		}
-		close(conClosed)
 	}()
 
 	var finalErr error
@@ -93,9 +110,6 @@ func run() error {
 	} else {
 		finalErr = srv.ListenAndServe()
 	}
-
-	<-conClosed
-	fmt.Println("graceful shutdown")
 
 	if errors.Is(finalErr, http.ErrServerClosed) {
 		return nil
