@@ -95,11 +95,8 @@ func (db *Database) SaveRecordsBatch(ctx context.Context, records []Record) erro
 func (db *Database) HealthCheck() error {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
-	if err := db.DB.PingContext(ctx); err != nil {
-		return err
-	}
 
-	return nil
+	return db.DB.PingContext(ctx)
 }
 
 func (db *Database) Close() error {
@@ -146,7 +143,7 @@ func (db *Database) CreateDatabase() error {
 
 func (db *Database) FindRecordsByUserID(ctx context.Context, userID int) (records []Record, err error) {
 	rows, err := db.DB.QueryContext(ctx,
-		"SELECT uuid, short_url, origin_url, is_deleted FROM urls WHERE user_id=$1", userID)
+		"SELECT uuid, short_url, origin_url, is_deleted, user_id FROM urls WHERE user_id=$1", userID)
 	if err != nil {
 		return
 	}
@@ -157,7 +154,7 @@ func (db *Database) FindRecordsByUserID(ctx context.Context, userID int) (record
 	}()
 	for rows.Next() {
 		var rec Record
-		err = rows.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.DeletedFlag)
+		err = rows.Scan(&rec.UUID, &rec.ShortULR, &rec.OriginalURL, &rec.DeletedFlag, &rec.UserID)
 		if err != nil {
 			return
 		}
@@ -191,11 +188,8 @@ func (db *Database) FindUserByID(ctx context.Context, userID int) (*User, error)
 
 	var user User
 	err := row.Scan(&user.UserID, &user.Cookie)
-	if err != nil {
-		return &user, err
-	}
 
-	return &user, nil
+	return &user, err
 }
 
 func (db *Database) CreateUser(ctx context.Context) (*User, error) {
