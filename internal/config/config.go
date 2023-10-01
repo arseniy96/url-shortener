@@ -4,40 +4,74 @@
 package config
 
 import (
+	"encoding/json"
 	"flag"
+	"os"
 
+	"dario.cat/mergo"
 	"github.com/caarlos0/env"
 )
 
 // Options – структура, которая хранит все настройки приложения.
 type Options struct {
 	// Host – адрес, на котором запустится веб-сервер.
-	Host string `env:"SERVER_ADDRESS"`
+	Host string `env:"SERVER_ADDRESS" json:"server_address"`
 	// ResolveHost – адрес, который используется для резолва сокращённой ссылки.
-	ResolveHost string `env:"BASE_URL"`
+	ResolveHost string `env:"BASE_URL" json:"base_url"`
 	// LoggingLevel – уровень логирования.
-	LoggingLevel string `env:"LOG_LEVEL" enums:"debug,info,warn,error"`
+	LoggingLevel string `env:"LOG_LEVEL" enums:"debug,info,warn,error" json:"log_level"`
 	// Filename – путь к файлу, который будет выступать в качестве хранилища.
-	Filename string `env:"FILE_STORAGE_PATH"`
+	Filename string `env:"FILE_STORAGE_PATH" json:"file_storage_path"`
 	// ConnectionData – DSN для БД.
-	ConnectionData string `env:"DATABASE_DSN"`
+	ConnectionData string `env:"DATABASE_DSN" json:"database_dsn"`
+	// ConfigPath – путь до файла с настройками
+	ConfigPath string `env:"CONFIG"`
+	// EnableHTTPS – HTTPS mode
+	EnableHTTPS bool `env:"ENABLE_HTTPS" json:"enable_https"`
 }
 
 // InitConfig – функция для инициализации конфигурации приложения.
-func InitConfig() *Options {
+func InitConfig() (*Options, error) {
 	options := &Options{}
 
 	flag.StringVar(&options.Host, "a", "localhost:8080", "server host with port")
 	flag.StringVar(&options.ResolveHost, "b", "http://localhost:8080", "resolve link address")
 	flag.StringVar(&options.LoggingLevel, "l", "info", "log level")
-	flag.StringVar(&options.Filename, "f", "/tmp/short-url-db.json", "storage file")
+	flag.StringVar(&options.Filename, "f", "", "storage file")
 	flag.StringVar(&options.ConnectionData, "d", "", "database connection data")
+	flag.BoolVar(&options.EnableHTTPS, "s", false, "HTTPS mode")
+	flag.StringVar(&options.ConfigPath, "c", "", "config path")
 	flag.Parse()
 
 	err := env.Parse(options)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return options
+	if options.ConfigPath != "" {
+		_, err := mergeSettings(options, options.ConfigPath)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return options, nil
+}
+
+func mergeSettings(op *Options, configPath string) (*Options, error) {
+	config := &Options{}
+	configFile, err := os.Open(configPath)
+	if err != nil {
+		return nil, err
+	}
+	err = json.NewDecoder(configFile).Decode(config)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = mergo.Merge(op, config); err != nil {
+		return nil, err
+	}
+
+	return op, err
 }

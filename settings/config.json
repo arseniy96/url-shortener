@@ -1,0 +1,8 @@
+{
+  "server_address": "localhost:8080",
+  "base_url": "http://localhost:8080",
+  "log_level": "info",
+  "file_storage_path": "./storage/store.json",
+  "database_dsn": "host=localhost user=shortener dbname=shortener sslmode=disable",
+  "enable_https": false
+}
