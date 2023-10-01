@@ -21,6 +21,7 @@ func NewRouter(server *handlers.Server) chi.Router {
 	//nolint:goconst // it's ok
 	router.Get("/api/user/urls", server.CookieMiddleware(server.UserUrls))
 	router.Delete("/api/user/urls", server.CookieMiddleware(server.DeleteUserUrls))
+	router.Get("/api/internal/stats", server.CookieMiddleware(server.Stats))
 
 	router.Mount("/debug/", middleware.Profiler())
 

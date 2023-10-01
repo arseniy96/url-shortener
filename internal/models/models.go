@@ -49,3 +49,8 @@ type ResponseUserURL struct {
 // RequestDeleteUserURLS – структура запроса на /api/user/urls
 // содержит ссылки, которые были удалены.
 type RequestDeleteUserURLS []string
+
+type ResponseStats struct {
+	URLs  int `json:"urls"`
+	Users int `json:"users"`
+}

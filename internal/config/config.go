@@ -28,6 +28,8 @@ type Options struct {
 	ConfigPath string `env:"CONFIG"`
 	// EnableHTTPS – HTTPS mode
 	EnableHTTPS bool `env:"ENABLE_HTTPS" json:"enable_https"`
+	// TrustedSubnet – разрешённая подсеть
+	TrustedSubnet string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 }
 
 // InitConfig – функция для инициализации конфигурации приложения.
@@ -41,6 +43,7 @@ func InitConfig() (*Options, error) {
 	flag.StringVar(&options.ConnectionData, "d", "", "database connection data")
 	flag.BoolVar(&options.EnableHTTPS, "s", false, "HTTPS mode")
 	flag.StringVar(&options.ConfigPath, "c", "", "config path")
+	flag.StringVar(&options.TrustedSubnet, "t", "", "trusted subnet for GET stats")
 	flag.Parse()
 
 	err := env.Parse(options)

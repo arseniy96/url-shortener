@@ -261,6 +261,24 @@ func (db *Database) DeleteBatchRecords(ctx context.Context, records []Record) er
 	return err
 }
 
+func (db *Database) GetURLsCount(ctx context.Context) (int, error) {
+	var result int
+
+	row := db.DB.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM urls")
+	err := row.Scan(&result)
+	return result, err
+}
+
+func (db *Database) GetUsersCount(ctx context.Context) (int, error) {
+	var result int
+
+	row := db.DB.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM users")
+	err := row.Scan(&result)
+	return result, err
+}
+
 func paramsBuilder(urls []string) string {
 	return "{" + strings.Join(urls, ",") + "}"
 }

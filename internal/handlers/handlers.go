@@ -24,6 +24,8 @@ type Repository interface {
 	UpdateUser(context.Context, int, string) error
 	FindUserByID(context.Context, int) (*storage.User, error)
 	DeleteUserURLs(storage.DeleteURLMessage) error
+	GetURLsCount(context.Context) (int, error)
+	GetUsersCount(context.Context) (int, error)
 }
 
 type Generate interface {
