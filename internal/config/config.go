@@ -26,10 +26,10 @@ type Options struct {
 	ConnectionData string `env:"DATABASE_DSN" json:"database_dsn"`
 	// ConfigPath – путь до файла с настройками
 	ConfigPath string `env:"CONFIG"`
-	// EnableHTTPS – HTTPS mode
-	EnableHTTPS bool `env:"ENABLE_HTTPS" json:"enable_https"`
 	// TrustedSubnet – разрешённая подсеть
 	TrustedSubnet string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
+	// EnableHTTPS – HTTPS mode
+	EnableHTTPS bool `env:"ENABLE_HTTPS" json:"enable_https"`
 }
 
 // InitConfig – функция для инициализации конфигурации приложения.

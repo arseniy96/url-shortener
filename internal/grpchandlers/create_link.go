@@ -20,7 +20,7 @@ func (s *GRPCServer) CreateLink(ctx context.Context, in *pb.CreateLinkRequest) (
 		return nil, status.Errorf(codes.InvalidArgument, "url length is zero")
 	}
 	if len(userSession) == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "user_session length is zero")
+		return nil, status.Errorf(codes.InvalidArgument, handlers.UserUnauthorizedErrTxt)
 	}
 
 	key := s.Generator.CreateKey()
@@ -47,13 +47,14 @@ func (s *GRPCServer) CreateLink(ctx context.Context, in *pb.CreateLinkRequest) (
 	return resp, nil
 }
 
-func (s *GRPCServer) CreateLinksBatch(ctx context.Context, in *pb.CreateLinksBatchRequest) (*pb.CreateLinksBatchResponse, error) {
+func (s *GRPCServer) CreateLinksBatch(ctx context.Context,
+	in *pb.CreateLinksBatchRequest) (*pb.CreateLinksBatchResponse, error) {
 	userSession := in.UserSession
 	if len(userSession) == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "user_session length is zero")
+		return nil, status.Errorf(codes.InvalidArgument, handlers.UserUnauthorizedErrTxt)
 	}
 
-	var response []*pb.CreateLinksBatchResponseNested
+	response := make([]*pb.CreateLinksBatchResponseNested, 0)
 	records := make([]storage.Record, 0)
 
 	for _, url := range in.Urls {

@@ -50,7 +50,7 @@ func (s *Server) Stats(writer http.ResponseWriter, request *http.Request) {
 	defer cancelCtx()
 	usersCount, err := s.Storage.GetUsersCount(ctx)
 	if err != nil {
-		logger.Log.Errorf("get urls count error: %v", err)
+		logger.Log.Errorf("get users count error: %v", err)
 		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}

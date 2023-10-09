@@ -59,8 +59,7 @@ func run() error {
 		return err
 	}
 
-	//serverStorage, err := storage.NewStorage(appConfig.Filename, appConfig.ConnectionData)
-	serverStorage, err := storage.NewStorage(appConfig.Filename, "")
+	serverStorage, err := storage.NewStorage(appConfig.Filename, appConfig.ConnectionData)
 	if err != nil {
 		logger.Log.Error(err)
 		return err

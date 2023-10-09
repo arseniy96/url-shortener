@@ -3,6 +3,7 @@ package grpchandlers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/arseniy96/url-shortener/internal/config"
 	"github.com/arseniy96/url-shortener/internal/handlers"
@@ -32,6 +33,10 @@ type GRPCServer struct {
 	handlers.Server
 }
 
+const (
+	TimeOut = 3 * time.Second
+)
+
 func NewServer(s Repository, c *config.Options) *GRPCServer {
 	server := &GRPCServer{
 		Server: handlers.Server{
@@ -40,8 +45,6 @@ func NewServer(s Repository, c *config.Options) *GRPCServer {
 			Config:    c,
 		},
 	}
-
-	//go server.deleteMessageBatch()
 
 	return server
 }
