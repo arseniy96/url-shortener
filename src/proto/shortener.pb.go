@@ -105,6 +105,320 @@ func (x *PingResponse) GetResult() string {
 	return ""
 }
 
+type CreateLinkRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Url         string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	UserSession string `protobuf:"bytes,2,opt,name=user_session,json=userSession,proto3" json:"user_session,omitempty"`
+}
+
+func (x *CreateLinkRequest) Reset() {
+	*x = CreateLinkRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_proto_shortener_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateLinkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLinkRequest) ProtoMessage() {}
+
+func (x *CreateLinkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_src_proto_shortener_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLinkRequest.ProtoReflect.Descriptor instead.
+func (*CreateLinkRequest) Descriptor() ([]byte, []int) {
+	return file_src_proto_shortener_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CreateLinkRequest) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *CreateLinkRequest) GetUserSession() string {
+	if x != nil {
+		return x.UserSession
+	}
+	return ""
+}
+
+type CreateLinkResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Result string `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+}
+
+func (x *CreateLinkResponse) Reset() {
+	*x = CreateLinkResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_proto_shortener_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateLinkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLinkResponse) ProtoMessage() {}
+
+func (x *CreateLinkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_src_proto_shortener_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLinkResponse.ProtoReflect.Descriptor instead.
+func (*CreateLinkResponse) Descriptor() ([]byte, []int) {
+	return file_src_proto_shortener_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CreateLinkResponse) GetResult() string {
+	if x != nil {
+		return x.Result
+	}
+	return ""
+}
+
+type CreateLinksBatchRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Urls        []*CreateLinksBatchRequestNested `protobuf:"bytes,1,rep,name=urls,proto3" json:"urls,omitempty"`
+	UserSession string                           `protobuf:"bytes,2,opt,name=user_session,json=userSession,proto3" json:"user_session,omitempty"`
+}
+
+func (x *CreateLinksBatchRequest) Reset() {
+	*x = CreateLinksBatchRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_proto_shortener_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateLinksBatchRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLinksBatchRequest) ProtoMessage() {}
+
+func (x *CreateLinksBatchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_src_proto_shortener_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLinksBatchRequest.ProtoReflect.Descriptor instead.
+func (*CreateLinksBatchRequest) Descriptor() ([]byte, []int) {
+	return file_src_proto_shortener_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CreateLinksBatchRequest) GetUrls() []*CreateLinksBatchRequestNested {
+	if x != nil {
+		return x.Urls
+	}
+	return nil
+}
+
+func (x *CreateLinksBatchRequest) GetUserSession() string {
+	if x != nil {
+		return x.UserSession
+	}
+	return ""
+}
+
+type CreateLinksBatchRequestNested struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CorrelationId string `protobuf:"bytes,1,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	OriginalUrl   string `protobuf:"bytes,2,opt,name=original_url,json=originalUrl,proto3" json:"original_url,omitempty"`
+}
+
+func (x *CreateLinksBatchRequestNested) Reset() {
+	*x = CreateLinksBatchRequestNested{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_proto_shortener_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateLinksBatchRequestNested) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLinksBatchRequestNested) ProtoMessage() {}
+
+func (x *CreateLinksBatchRequestNested) ProtoReflect() protoreflect.Message {
+	mi := &file_src_proto_shortener_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLinksBatchRequestNested.ProtoReflect.Descriptor instead.
+func (*CreateLinksBatchRequestNested) Descriptor() ([]byte, []int) {
+	return file_src_proto_shortener_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CreateLinksBatchRequestNested) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+func (x *CreateLinksBatchRequestNested) GetOriginalUrl() string {
+	if x != nil {
+		return x.OriginalUrl
+	}
+	return ""
+}
+
+type CreateLinksBatchResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Urls []*CreateLinksBatchResponseNested `protobuf:"bytes,1,rep,name=urls,proto3" json:"urls,omitempty"`
+}
+
+func (x *CreateLinksBatchResponse) Reset() {
+	*x = CreateLinksBatchResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_proto_shortener_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateLinksBatchResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLinksBatchResponse) ProtoMessage() {}
+
+func (x *CreateLinksBatchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_src_proto_shortener_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLinksBatchResponse.ProtoReflect.Descriptor instead.
+func (*CreateLinksBatchResponse) Descriptor() ([]byte, []int) {
+	return file_src_proto_shortener_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CreateLinksBatchResponse) GetUrls() []*CreateLinksBatchResponseNested {
+	if x != nil {
+		return x.Urls
+	}
+	return nil
+}
+
+type CreateLinksBatchResponseNested struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CorrelationId string `protobuf:"bytes,1,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	ShortUrl      string `protobuf:"bytes,2,opt,name=short_url,json=shortUrl,proto3" json:"short_url,omitempty"`
+}
+
+func (x *CreateLinksBatchResponseNested) Reset() {
+	*x = CreateLinksBatchResponseNested{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_proto_shortener_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateLinksBatchResponseNested) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLinksBatchResponseNested) ProtoMessage() {}
+
+func (x *CreateLinksBatchResponseNested) ProtoReflect() protoreflect.Message {
+	mi := &file_src_proto_shortener_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLinksBatchResponseNested.ProtoReflect.Descriptor instead.
+func (*CreateLinksBatchResponseNested) Descriptor() ([]byte, []int) {
+	return file_src_proto_shortener_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CreateLinksBatchResponseNested) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+func (x *CreateLinksBatchResponseNested) GetShortUrl() string {
+	if x != nil {
+		return x.ShortUrl
+	}
+	return ""
+}
+
 var File_src_proto_shortener_proto protoreflect.FileDescriptor
 
 var file_src_proto_shortener_proto_rawDesc = []byte{
@@ -114,13 +428,60 @@ var file_src_proto_shortener_proto_rawDesc = []byte{
 	0x69, 0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x26, 0x0a, 0x0c, 0x50, 0x69,
 	0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65,
 	0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75,
-	0x6c, 0x74, 0x32, 0x53, 0x0a, 0x0e, 0x53, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x50,
-	0x72, 0x6f, 0x74, 0x6f, 0x12, 0x41, 0x0a, 0x04, 0x50, 0x69, 0x6e, 0x67, 0x12, 0x1b, 0x2e, 0x73,
-	0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x50, 0x69,
-	0x6e, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x73, 0x68, 0x6f, 0x72,
-	0x74, 0x65, 0x6e, 0x65, 0x72, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x50, 0x69, 0x6e, 0x67, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x0b, 0x5a, 0x09, 0x73, 0x72, 0x63, 0x2f, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x74, 0x22, 0x48, 0x0a, 0x11, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x12, 0x21, 0x0a, 0x0c, 0x75, 0x73, 0x65,
+	0x72, 0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x0b, 0x75, 0x73, 0x65, 0x72, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0x2c, 0x0a, 0x12,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x22, 0x7f, 0x0a, 0x17, 0x43, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x41, 0x0a, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x18, 0x01, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x2d, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x73,
+	0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x65, 0x73, 0x74,
+	0x65, 0x64, 0x52, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x75, 0x73, 0x65, 0x72,
+	0x5f, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b,
+	0x75, 0x73, 0x65, 0x72, 0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0x69, 0x0a, 0x1d, 0x43,
+	0x72, 0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x12, 0x25, 0x0a, 0x0e,
+	0x63, 0x6f, 0x72, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x63, 0x6f, 0x72, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x49, 0x64, 0x12, 0x21, 0x0a, 0x0c, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x61, 0x6c, 0x5f,
+	0x75, 0x72, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x6f, 0x72, 0x69, 0x67, 0x69,
+	0x6e, 0x61, 0x6c, 0x55, 0x72, 0x6c, 0x22, 0x5e, 0x0a, 0x18, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
+	0x4c, 0x69, 0x6e, 0x6b, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x42, 0x0a, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x2e, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x73, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64,
+	0x52, 0x04, 0x75, 0x72, 0x6c, 0x73, 0x22, 0x64, 0x0a, 0x1e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
+	0x4c, 0x69, 0x6e, 0x6b, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x12, 0x25, 0x0a, 0x0e, 0x63, 0x6f, 0x72, 0x72,
+	0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0d, 0x63, 0x6f, 0x72, 0x72, 0x65, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12,
+	0x1b, 0x0a, 0x09, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x5f, 0x75, 0x72, 0x6c, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x08, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x55, 0x72, 0x6c, 0x32, 0x8f, 0x02, 0x0a,
+	0x0e, 0x53, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x12,
+	0x41, 0x0a, 0x04, 0x50, 0x69, 0x6e, 0x67, 0x12, 0x1b, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65,
+	0x6e, 0x65, 0x72, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x50, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x50, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x53, 0x0a, 0x0a, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b,
+	0x12, 0x21, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x65, 0x0a, 0x10, 0x43, 0x72, 0x65, 0x61, 0x74,
+	0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x12, 0x27, 0x2e, 0x73, 0x68,
+	0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x72, 0x65,
+	0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x28, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4c, 0x69, 0x6e, 0x6b,
+	0x73, 0x42, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x0b,
+	0x5a, 0x09, 0x73, 0x72, 0x63, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -135,19 +496,31 @@ func file_src_proto_shortener_proto_rawDescGZIP() []byte {
 	return file_src_proto_shortener_proto_rawDescData
 }
 
-var file_src_proto_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_src_proto_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_src_proto_shortener_proto_goTypes = []interface{}{
-	(*PingRequest)(nil),  // 0: shortenerproto.PingRequest
-	(*PingResponse)(nil), // 1: shortenerproto.PingResponse
+	(*PingRequest)(nil),                    // 0: shortenerproto.PingRequest
+	(*PingResponse)(nil),                   // 1: shortenerproto.PingResponse
+	(*CreateLinkRequest)(nil),              // 2: shortenerproto.CreateLinkRequest
+	(*CreateLinkResponse)(nil),             // 3: shortenerproto.CreateLinkResponse
+	(*CreateLinksBatchRequest)(nil),        // 4: shortenerproto.CreateLinksBatchRequest
+	(*CreateLinksBatchRequestNested)(nil),  // 5: shortenerproto.CreateLinksBatchRequestNested
+	(*CreateLinksBatchResponse)(nil),       // 6: shortenerproto.CreateLinksBatchResponse
+	(*CreateLinksBatchResponseNested)(nil), // 7: shortenerproto.CreateLinksBatchResponseNested
 }
 var file_src_proto_shortener_proto_depIdxs = []int32{
-	0, // 0: shortenerproto.ShortenerProto.Ping:input_type -> shortenerproto.PingRequest
-	1, // 1: shortenerproto.ShortenerProto.Ping:output_type -> shortenerproto.PingResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	5, // 0: shortenerproto.CreateLinksBatchRequest.urls:type_name -> shortenerproto.CreateLinksBatchRequestNested
+	7, // 1: shortenerproto.CreateLinksBatchResponse.urls:type_name -> shortenerproto.CreateLinksBatchResponseNested
+	0, // 2: shortenerproto.ShortenerProto.Ping:input_type -> shortenerproto.PingRequest
+	2, // 3: shortenerproto.ShortenerProto.CreateLink:input_type -> shortenerproto.CreateLinkRequest
+	4, // 4: shortenerproto.ShortenerProto.CreateLinksBatch:input_type -> shortenerproto.CreateLinksBatchRequest
+	1, // 5: shortenerproto.ShortenerProto.Ping:output_type -> shortenerproto.PingResponse
+	3, // 6: shortenerproto.ShortenerProto.CreateLink:output_type -> shortenerproto.CreateLinkResponse
+	6, // 7: shortenerproto.ShortenerProto.CreateLinksBatch:output_type -> shortenerproto.CreateLinksBatchResponse
+	5, // [5:8] is the sub-list for method output_type
+	2, // [2:5] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_src_proto_shortener_proto_init() }
@@ -180,6 +553,78 @@ func file_src_proto_shortener_proto_init() {
 				return nil
 			}
 		}
+		file_src_proto_shortener_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateLinkRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_proto_shortener_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateLinkResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_proto_shortener_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateLinksBatchRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_proto_shortener_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateLinksBatchRequestNested); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_proto_shortener_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateLinksBatchResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_proto_shortener_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateLinksBatchResponseNested); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -187,7 +632,7 @@ func file_src_proto_shortener_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_src_proto_shortener_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
 	"github.com/arseniy96/url-shortener/internal/config"
@@ -74,11 +75,15 @@ func run() error {
 		logger.Log.Error("Restore storage error", zap.Error(err))
 	}
 
-	// TODO: запускать в разных горутинах
-	if err := runGRPCServer(serverStorage, appConfig); err != nil {
-		return err
-	}
-	return runHTTPServer(serverStorage, appConfig)
+	grp := errgroup.Group{}
+	grp.Go(func() error {
+		return runGRPCServer(serverStorage, appConfig)
+	})
+	grp.Go(func() error {
+		return runHTTPServer(serverStorage, appConfig)
+	})
+
+	return grp.Wait()
 }
 
 func runHTTPServer(serverStorage handlers.Repository, appConfig *config.Options) error {

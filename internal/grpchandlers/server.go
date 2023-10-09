@@ -2,6 +2,7 @@ package grpchandlers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/arseniy96/url-shortener/internal/config"
 	"github.com/arseniy96/url-shortener/internal/handlers"
@@ -43,4 +44,8 @@ func NewServer(s Repository, c *config.Options) *GRPCServer {
 	//go server.deleteMessageBatch()
 
 	return server
+}
+
+func buildShortURL(host, path string) string {
+	return fmt.Sprintf("%s/%s", host, path)
 }

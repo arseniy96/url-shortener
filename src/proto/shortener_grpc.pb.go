@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ShortenerProto_Ping_FullMethodName = "/shortenerproto.ShortenerProto/Ping"
+	ShortenerProto_Ping_FullMethodName             = "/shortenerproto.ShortenerProto/Ping"
+	ShortenerProto_CreateLink_FullMethodName       = "/shortenerproto.ShortenerProto/CreateLink"
+	ShortenerProto_CreateLinksBatch_FullMethodName = "/shortenerproto.ShortenerProto/CreateLinksBatch"
 )
 
 // ShortenerProtoClient is the client API for ShortenerProto service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShortenerProtoClient interface {
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	CreateLink(ctx context.Context, in *CreateLinkRequest, opts ...grpc.CallOption) (*CreateLinkResponse, error)
+	CreateLinksBatch(ctx context.Context, in *CreateLinksBatchRequest, opts ...grpc.CallOption) (*CreateLinksBatchResponse, error)
 }
 
 type shortenerProtoClient struct {
@@ -46,11 +50,31 @@ func (c *shortenerProtoClient) Ping(ctx context.Context, in *PingRequest, opts .
 	return out, nil
 }
 
+func (c *shortenerProtoClient) CreateLink(ctx context.Context, in *CreateLinkRequest, opts ...grpc.CallOption) (*CreateLinkResponse, error) {
+	out := new(CreateLinkResponse)
+	err := c.cc.Invoke(ctx, ShortenerProto_CreateLink_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shortenerProtoClient) CreateLinksBatch(ctx context.Context, in *CreateLinksBatchRequest, opts ...grpc.CallOption) (*CreateLinksBatchResponse, error) {
+	out := new(CreateLinksBatchResponse)
+	err := c.cc.Invoke(ctx, ShortenerProto_CreateLinksBatch_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShortenerProtoServer is the server API for ShortenerProto service.
 // All implementations must embed UnimplementedShortenerProtoServer
 // for forward compatibility
 type ShortenerProtoServer interface {
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	CreateLink(context.Context, *CreateLinkRequest) (*CreateLinkResponse, error)
+	CreateLinksBatch(context.Context, *CreateLinksBatchRequest) (*CreateLinksBatchResponse, error)
 	mustEmbedUnimplementedShortenerProtoServer()
 }
 
@@ -60,6 +84,12 @@ type UnimplementedShortenerProtoServer struct {
 
 func (UnimplementedShortenerProtoServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedShortenerProtoServer) CreateLink(context.Context, *CreateLinkRequest) (*CreateLinkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateLink not implemented")
+}
+func (UnimplementedShortenerProtoServer) CreateLinksBatch(context.Context, *CreateLinksBatchRequest) (*CreateLinksBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateLinksBatch not implemented")
 }
 func (UnimplementedShortenerProtoServer) mustEmbedUnimplementedShortenerProtoServer() {}
 
@@ -92,6 +122,42 @@ func _ShortenerProto_Ping_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShortenerProto_CreateLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortenerProtoServer).CreateLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShortenerProto_CreateLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortenerProtoServer).CreateLink(ctx, req.(*CreateLinkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShortenerProto_CreateLinksBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateLinksBatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortenerProtoServer).CreateLinksBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShortenerProto_CreateLinksBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortenerProtoServer).CreateLinksBatch(ctx, req.(*CreateLinksBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShortenerProto_ServiceDesc is the grpc.ServiceDesc for ShortenerProto service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +168,14 @@ var ShortenerProto_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Ping",
 			Handler:    _ShortenerProto_Ping_Handler,
+		},
+		{
+			MethodName: "CreateLink",
+			Handler:    _ShortenerProto_CreateLink_Handler,
+		},
+		{
+			MethodName: "CreateLinksBatch",
+			Handler:    _ShortenerProto_CreateLinksBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

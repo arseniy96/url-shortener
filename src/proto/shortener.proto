@@ -6,10 +6,35 @@ option go_package = "src/proto";
 
 service ShortenerProto {
   rpc Ping(PingRequest) returns(PingResponse);
+  rpc CreateLink(CreateLinkRequest) returns(CreateLinkResponse);
+  rpc CreateLinksBatch(CreateLinksBatchRequest) returns(CreateLinksBatchResponse);
 }
 
-message PingRequest{}
-
-message PingResponse{
+message PingRequest {}
+message PingResponse {
   string result = 1;
+}
+
+message CreateLinkRequest {
+  string url = 1;
+  string user_session = 2;
+}
+message CreateLinkResponse {
+  string result = 1;
+}
+
+message CreateLinksBatchRequest {
+  repeated CreateLinksBatchRequestNested urls = 1;
+  string user_session = 2;
+}
+message CreateLinksBatchRequestNested {
+  string correlation_id = 1;
+  string original_url = 2;
+}
+message CreateLinksBatchResponse {
+  repeated CreateLinksBatchResponseNested urls = 1;
+}
+message CreateLinksBatchResponseNested {
+  string correlation_id = 1;
+  string short_url = 2;
 }
