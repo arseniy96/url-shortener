@@ -33,8 +33,8 @@ type Generate interface {
 }
 
 type Server struct {
-	storage        Repository
-	generator      Generate
+	Storage        Repository
+	Generator      Generate
 	Config         *config.Options
 	DeleteURLSChan chan storage.DeleteURLMessage
 }
@@ -53,8 +53,8 @@ const (
 
 func NewServer(s Repository, c *config.Options) *Server {
 	server := &Server{
-		storage:        s,
-		generator:      keygenerator.NewGenerator(s),
+		Storage:        s,
+		Generator:      keygenerator.NewGenerator(s),
 		Config:         c,
 		DeleteURLSChan: make(chan storage.DeleteURLMessage, DeleteURLSChanSize),
 	}
@@ -66,7 +66,7 @@ func NewServer(s Repository, c *config.Options) *Server {
 
 func (s *Server) deleteMessageBatch() {
 	for msg := range s.DeleteURLSChan {
-		err := s.storage.DeleteUserURLs(msg)
+		err := s.Storage.DeleteUserURLs(msg)
 		if err != nil {
 			logger.Log.Error(err)
 			continue

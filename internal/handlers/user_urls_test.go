@@ -102,8 +102,8 @@ func TestServer_UserUrls(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/api/user/urls", nil)
 
 			s := Server{
-				storage:   tt.fields.storage,
-				generator: tt.fields.generator,
+				Storage:   tt.fields.storage,
+				Generator: tt.fields.generator,
 				Config:    tt.fields.config,
 			}
 

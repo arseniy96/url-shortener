@@ -39,7 +39,7 @@ func (s *Server) Stats(writer http.ResponseWriter, request *http.Request) {
 
 	ctx, cancelCtx := context.WithTimeout(context.Background(), TimeOut)
 	defer cancelCtx()
-	urlsCount, err := s.storage.GetURLsCount(ctx)
+	urlsCount, err := s.Storage.GetURLsCount(ctx)
 	if err != nil {
 		logger.Log.Errorf("get urls count error: %v", err)
 		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
@@ -48,7 +48,7 @@ func (s *Server) Stats(writer http.ResponseWriter, request *http.Request) {
 
 	ctx, cancelCtx = context.WithTimeout(context.Background(), TimeOut)
 	defer cancelCtx()
-	usersCount, err := s.storage.GetUsersCount(ctx)
+	usersCount, err := s.Storage.GetUsersCount(ctx)
 	if err != nil {
 		logger.Log.Errorf("get urls count error: %v", err)
 		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)

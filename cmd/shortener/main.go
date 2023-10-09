@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os/signal"
@@ -11,13 +13,16 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 
 	"github.com/arseniy96/url-shortener/internal/config"
+	"github.com/arseniy96/url-shortener/internal/grpchandlers"
 	"github.com/arseniy96/url-shortener/internal/handlers"
 	"github.com/arseniy96/url-shortener/internal/logger"
 	"github.com/arseniy96/url-shortener/internal/router"
 	"github.com/arseniy96/url-shortener/internal/services/mycrypto"
 	"github.com/arseniy96/url-shortener/internal/storage"
+	pb "github.com/arseniy96/url-shortener/src/proto"
 )
 
 const (
@@ -53,7 +58,8 @@ func run() error {
 		return err
 	}
 
-	serverStorage, err := storage.NewStorage(appConfig.Filename, appConfig.ConnectionData)
+	//serverStorage, err := storage.NewStorage(appConfig.Filename, appConfig.ConnectionData)
+	serverStorage, err := storage.NewStorage(appConfig.Filename, "")
 	if err != nil {
 		logger.Log.Error(err)
 		return err
@@ -68,6 +74,14 @@ func run() error {
 		logger.Log.Error("Restore storage error", zap.Error(err))
 	}
 
+	// TODO: запускать в разных горутинах
+	if err := runGRPCServer(serverStorage, appConfig); err != nil {
+		return err
+	}
+	return runHTTPServer(serverStorage, appConfig)
+}
+
+func runHTTPServer(serverStorage handlers.Repository, appConfig *config.Options) error {
 	s := handlers.NewServer(serverStorage, appConfig)
 	r := router.NewRouter(s)
 
@@ -116,4 +130,18 @@ func run() error {
 	}
 
 	return finalErr
+}
+
+func runGRPCServer(serverStorage handlers.Repository, appConfig *config.Options) error {
+	serverGRPC := grpchandlers.NewServer(serverStorage, appConfig)
+
+	listen, err := net.Listen("tcp", ":3200")
+	if err != nil {
+		return err
+	}
+	gRPCServer := grpc.NewServer()
+	pb.RegisterShortenerProtoServer(gRPCServer, serverGRPC)
+
+	fmt.Println("gRPC server is running")
+	return gRPCServer.Serve(listen)
 }

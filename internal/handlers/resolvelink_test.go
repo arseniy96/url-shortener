@@ -80,8 +80,8 @@ func TestServer_ResolveLink(t *testing.T) {
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, ctx))
 
 			s := Server{
-				storage:   tt.fields.storage,
-				generator: tt.fields.generator,
+				Storage:   tt.fields.storage,
+				Generator: tt.fields.generator,
 				Config:    tt.fields.config,
 			}
 

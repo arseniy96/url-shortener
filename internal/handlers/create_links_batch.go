@@ -32,7 +32,7 @@ func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Requ
 	}
 
 	for _, el := range body {
-		key := s.generator.CreateKey()
+		key := s.Generator.CreateKey()
 
 		rec := storage.Record{
 			UUID:        el.CorrelationID,
@@ -50,7 +50,7 @@ func (s *Server) CreateLinksBatch(writer http.ResponseWriter, request *http.Requ
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
-	err := s.storage.AddBatch(ctx, records)
+	err := s.Storage.AddBatch(ctx, records)
 	if err != nil {
 		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
