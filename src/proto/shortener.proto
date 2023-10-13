@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package shortenerproto;
+package grpchandlers;
 
-option go_package = "src/proto";
+option go_package = "internal/grpchandlers";
 
 service ShortenerProto {
   rpc Ping(PingRequest) returns(PingResponse);
@@ -12,23 +12,32 @@ service ShortenerProto {
   rpc UserUrls(UserUrlsRequest) returns(UserUrlsResponse);
 }
 
+// PingRequest - запрос на ping (empty)
 message PingRequest {}
+// PingResponse - ответ на ping
 message PingResponse {
   string result = 1;
 }
 
+// CreateLinkRequest - запрос на сокращение ссылки
 message CreateLinkRequest {
+  // url - URL для сокращения
   string url = 1;
+  // user_session - сессия пользователя (используется так же, как и cookie в HTTP)
   string user_session = 2;
 }
+// CreateLinkResponse - ответ с сокращённой ссылкой
 message CreateLinkResponse {
   string result = 1;
 }
 
+// CreateLinksBatchRequest - запрос для сокращения нескольких ссылок
 message CreateLinksBatchRequest {
   repeated CreateLinksBatchRequestNested urls = 1;
+  // user_session - сессия пользователя (используется так же, как и cookie в HTTP)
   string user_session = 2;
 }
+// CreateLinksBatchRequestNested - массив ссылок для сокращения
 message CreateLinksBatchRequestNested {
   string correlation_id = 1;
   string original_url = 2;

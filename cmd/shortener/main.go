@@ -23,7 +23,6 @@ import (
 	"github.com/arseniy96/url-shortener/internal/router"
 	"github.com/arseniy96/url-shortener/internal/services/mycrypto"
 	"github.com/arseniy96/url-shortener/internal/storage"
-	pb "github.com/arseniy96/url-shortener/src/proto"
 )
 
 const (
@@ -144,7 +143,7 @@ func runGRPCServer(serverStorage handlers.Repository, appConfig *config.Options)
 		return err
 	}
 	gRPCServer := grpc.NewServer()
-	pb.RegisterShortenerProtoServer(gRPCServer, serverGRPC)
+	grpchandlers.RegisterShortenerProtoServer(gRPCServer, serverGRPC)
 
 	fmt.Println("gRPC server is running")
 	return gRPCServer.Serve(listen)

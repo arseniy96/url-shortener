@@ -8,10 +8,9 @@ import (
 
 	"github.com/arseniy96/url-shortener/internal/handlers"
 	"github.com/arseniy96/url-shortener/internal/logger"
-	pb "github.com/arseniy96/url-shortener/src/proto"
 )
 
-func (s *GRPCServer) UserUrls(ctx context.Context, in *pb.UserUrlsRequest) (*pb.UserUrlsResponse, error) {
+func (s *GRPCServer) UserUrls(ctx context.Context, in *UserUrlsRequest) (*UserUrlsResponse, error) {
 	userSession := in.GetUserSession()
 	if len(userSession) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, handlers.UserUnauthorizedErrTxt)
@@ -29,14 +28,14 @@ func (s *GRPCServer) UserUrls(ctx context.Context, in *pb.UserUrlsRequest) (*pb.
 		return nil, status.Errorf(codes.NotFound, "User doesn't have urls")
 	}
 
-	urls := make([]*pb.UserUrlsResponseNested, 0)
+	urls := make([]*UserUrlsResponseNested, 0)
 	for _, rec := range records {
-		respEl := &pb.UserUrlsResponseNested{
+		respEl := &UserUrlsResponseNested{
 			ShortUrl:    buildShortURL(s.Config.ResolveHost, rec.ShortULR),
 			OriginalUrl: rec.OriginalURL,
 		}
 		urls = append(urls, respEl)
 	}
 
-	return &pb.UserUrlsResponse{Urls: urls}, nil
+	return &UserUrlsResponse{Urls: urls}, nil
 }

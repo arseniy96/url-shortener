@@ -51,3 +51,14 @@ FILE_STORAGE_PATH="/storage/storage.json" go run ./cmd/shortener/
 ```
 godoc -http:8080
 ```
+
+## Запуск тестов и процент покрытия
+
+Тесты написаны только на модули в папке internal.
+
+Для запуска тестов и определения теста покрытия необходимо выполнить:
+
+```
+go test -v -coverpkg=./internal/... -coverprofile=profile.cov ./internal/...
+go tool cover -func profile.cov
+```

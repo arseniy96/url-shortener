@@ -7,10 +7,9 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/arseniy96/url-shortener/internal/storage"
-	pb "github.com/arseniy96/url-shortener/src/proto"
 )
 
-func (s *GRPCServer) Ping(ctx context.Context, _ *pb.PingRequest) (*pb.PingResponse, error) {
+func (s *GRPCServer) Ping(ctx context.Context, _ *PingRequest) (*PingResponse, error) {
 	if s.Storage.GetMode() != storage.DBMode {
 		return nil, status.Errorf(codes.Internal, "not DB mode")
 	}
@@ -20,7 +19,7 @@ func (s *GRPCServer) Ping(ctx context.Context, _ *pb.PingRequest) (*pb.PingRespo
 		return nil, status.Errorf(codes.Internal, "DB is broken")
 	}
 
-	resp := &pb.PingResponse{
+	resp := &PingResponse{
 		Result: "OK",
 	}
 

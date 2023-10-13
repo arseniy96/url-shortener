@@ -9,7 +9,6 @@ import (
 	"github.com/arseniy96/url-shortener/internal/handlers"
 	"github.com/arseniy96/url-shortener/internal/services/keygenerator"
 	"github.com/arseniy96/url-shortener/internal/storage"
-	pb "github.com/arseniy96/url-shortener/src/proto"
 )
 
 type Repository interface {
@@ -29,7 +28,7 @@ type Repository interface {
 }
 
 type GRPCServer struct {
-	pb.UnimplementedShortenerProtoServer
+	UnimplementedShortenerProtoServer
 	handlers.Server
 }
 

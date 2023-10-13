@@ -9,10 +9,9 @@ import (
 
 	"github.com/arseniy96/url-shortener/internal/handlers"
 	"github.com/arseniy96/url-shortener/internal/storage"
-	pb "github.com/arseniy96/url-shortener/src/proto"
 )
 
-func (s *GRPCServer) ResolveLink(ctx context.Context, in *pb.ResolveLinkRequest) (*pb.ResolveLinkResponse, error) {
+func (s *GRPCServer) ResolveLink(ctx context.Context, in *ResolveLinkRequest) (*ResolveLinkResponse, error) {
 	url, err := s.Storage.Get(in.GetShortUrl())
 	if err != nil {
 		if errors.Is(err, storage.ErrDeleted) {
@@ -20,7 +19,7 @@ func (s *GRPCServer) ResolveLink(ctx context.Context, in *pb.ResolveLinkRequest)
 		}
 		return nil, status.Errorf(codes.DataLoss, handlers.InternalBackendErrTxt)
 	}
-	return &pb.ResolveLinkResponse{
+	return &ResolveLinkResponse{
 		OriginalUrl: url,
 	}, nil
 }

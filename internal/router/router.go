@@ -12,7 +12,11 @@ import (
 // NewRouter – функция инициализации роутера.
 func NewRouter(server *handlers.Server) chi.Router {
 	router := chi.NewRouter()
-	router.Use(middlewares.GzipMiddleware, middlewares.LoggerMiddleware)
+	router.Use(
+		middlewares.GzipMiddleware,
+		middlewares.LoggerMiddleware,
+		middlewares.IPCheckerMiddleware(server.Config.TrustedSubnet),
+	)
 	router.Post("/", server.CookieMiddleware(server.CreateLink))
 	router.Get("/{url_id}", server.CookieMiddleware(server.ResolveLink))
 	router.Get("/ping", server.CookieMiddleware(server.Ping))

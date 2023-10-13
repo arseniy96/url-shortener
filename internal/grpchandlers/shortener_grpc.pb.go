@@ -4,7 +4,7 @@
 // - protoc             v4.24.3
 // source: src/proto/shortener.proto
 
-package proto
+package grpchandlers
 
 import (
 	context "context"
@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ShortenerProto_Ping_FullMethodName             = "/shortenerproto.ShortenerProto/Ping"
-	ShortenerProto_CreateLink_FullMethodName       = "/shortenerproto.ShortenerProto/CreateLink"
-	ShortenerProto_CreateLinksBatch_FullMethodName = "/shortenerproto.ShortenerProto/CreateLinksBatch"
-	ShortenerProto_ResolveLink_FullMethodName      = "/shortenerproto.ShortenerProto/ResolveLink"
-	ShortenerProto_UserUrls_FullMethodName         = "/shortenerproto.ShortenerProto/UserUrls"
+	ShortenerProto_Ping_FullMethodName             = "/grpchandlers.ShortenerProto/Ping"
+	ShortenerProto_CreateLink_FullMethodName       = "/grpchandlers.ShortenerProto/CreateLink"
+	ShortenerProto_CreateLinksBatch_FullMethodName = "/grpchandlers.ShortenerProto/CreateLinksBatch"
+	ShortenerProto_ResolveLink_FullMethodName      = "/grpchandlers.ShortenerProto/ResolveLink"
+	ShortenerProto_UserUrls_FullMethodName         = "/grpchandlers.ShortenerProto/UserUrls"
 )
 
 // ShortenerProtoClient is the client API for ShortenerProto service.
@@ -228,7 +228,7 @@ func _ShortenerProto_UserUrls_Handler(srv interface{}, ctx context.Context, dec 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ShortenerProto_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "shortenerproto.ShortenerProto",
+	ServiceName: "grpchandlers.ShortenerProto",
 	HandlerType: (*ShortenerProtoServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
