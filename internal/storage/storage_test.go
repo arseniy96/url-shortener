@@ -950,3 +950,85 @@ func TestStorage_GetByUser(t *testing.T) {
 		})
 	}
 }
+
+//nolint:dupl // It's ok
+func TestStorage_GetURLsCount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := NewMockDatabaseInterface(ctrl)
+	m.EXPECT().GetURLsCount(gomock.Any()).Return(5, nil).AnyTimes()
+
+	type fields struct {
+		database DatabaseInterface
+		mode     int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "success",
+			fields: fields{
+				database: m,
+				mode:     DBMode,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Storage{
+				database: tt.fields.database,
+				mode:     tt.fields.mode,
+			}
+			_, err := s.GetURLsCount(context.Background())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetByUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+//nolint:dupl // it's ok
+func TestStorage_GetUsersCount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := NewMockDatabaseInterface(ctrl)
+	m.EXPECT().GetUsersCount(gomock.Any()).Return(5, nil).AnyTimes()
+
+	type fields struct {
+		database DatabaseInterface
+		mode     int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "success",
+			fields: fields{
+				database: m,
+				mode:     DBMode,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Storage{
+				database: tt.fields.database,
+				mode:     tt.fields.mode,
+			}
+			_, err := s.GetUsersCount(context.Background())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetByUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

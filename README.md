@@ -59,6 +59,7 @@ godoc -http:8080
 Для запуска тестов и определения теста покрытия необходимо выполнить:
 
 ```
-go test -v -coverpkg=./internal/... -coverprofile=profile.cov ./internal/...
-go tool cover -func profile.cov
+go test ./... -coverprofile cover.out.tmp --tags=integration
+cat cover.out.tmp | grep -v ".pb.go" > cover.out
+go tool cover -func cover.out
 ```
