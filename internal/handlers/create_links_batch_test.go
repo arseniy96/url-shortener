@@ -81,8 +81,8 @@ func TestServer_CreateLinksBatch(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", strings.NewReader(tt.body))
 
 			s := Server{
-				storage:   tt.fields.storage,
-				generator: tt.fields.generator,
+				Storage:   tt.fields.storage,
+				Generator: tt.fields.generator,
 				Config:    tt.fields.config,
 			}
 

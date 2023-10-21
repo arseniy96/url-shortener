@@ -29,6 +29,7 @@ func TestMain(m *testing.M) {
 
 	// uses a sensible default on windows (tcp/http) and linux/osx (socket)
 	pool, err := dockertest.NewPool("")
+	//pool, err := dockertest.NewPool("unix:///Users/arseniy/.docker/run/docker.sock")
 	if err != nil {
 		logger.Log.Fatalf("Could not construct pool: %s", err)
 	}
@@ -547,6 +548,58 @@ func TestDatabase_DeleteBatchRecords(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := testDatabase.DeleteBatchRecords(context.Background(), tt.args.records); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteBatchRecords() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestDatabase_GetURLsCount(t *testing.T) {
+	tests := []struct {
+		name    string
+		want    int
+		wantErr bool
+	}{
+		{
+			name:    "success find",
+			want:    6,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testDatabase.GetURLsCount(context.Background())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FindUserByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FindUserByID() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDatabase_GetUsersCount(t *testing.T) {
+	tests := []struct {
+		name    string
+		want    int
+		wantErr bool
+	}{
+		{
+			name:    "success find",
+			want:    1,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := testDatabase.GetUsersCount(context.Background())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FindUserByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FindUserByID() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

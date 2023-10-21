@@ -50,6 +50,8 @@ type DatabaseInterface interface {
 	FindUserByID(context.Context, int) (*User, error)
 	FindRecordsBatchByShortURL(context.Context, []string) ([]Record, error)
 	DeleteBatchRecords(context.Context, []Record) error
+	GetURLsCount(context.Context) (int, error)
+	GetUsersCount(context.Context) (int, error)
 }
 
 // Storage – структура, которая даёт доступ к хранилищу.
@@ -373,6 +375,14 @@ func (s *Storage) DeleteUserURLs(message DeleteURLMessage) error {
 	}
 
 	return s.database.DeleteBatchRecords(ctx, deletedRecords)
+}
+
+func (s *Storage) GetURLsCount(ctx context.Context) (int, error) {
+	return s.database.GetURLsCount(ctx)
+}
+
+func (s *Storage) GetUsersCount(ctx context.Context) (int, error) {
+	return s.database.GetUsersCount(ctx)
 }
 
 // HealthCheck – проверка работоспособности хранилища.

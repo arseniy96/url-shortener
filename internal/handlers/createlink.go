@@ -36,13 +36,13 @@ func (s *Server) CreateLink(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	key := s.generator.CreateKey()
+	key := s.Generator.CreateKey()
 
-	err = s.storage.Add(key, string(body), userSession.Value)
+	err = s.Storage.Add(key, string(body), userSession.Value)
 	if err != nil {
 		logger.Log.Error(err)
 		if errors.Is(err, storage.ErrConflict) {
-			shortURL, err := s.storage.GetByOriginURL(string(body))
+			shortURL, err := s.Storage.GetByOriginURL(string(body))
 			if err != nil {
 				http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 				return
@@ -97,11 +97,11 @@ func (s *Server) CreateLinkJSON(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	key := s.generator.CreateKey()
-	err = s.storage.Add(key, url, userSession.Value)
+	key := s.Generator.CreateKey()
+	err = s.Storage.Add(key, url, userSession.Value)
 	if err != nil {
 		if errors.Is(err, storage.ErrConflict) {
-			shortURL, err := s.storage.GetByOriginURL(url)
+			shortURL, err := s.Storage.GetByOriginURL(url)
 			if err != nil {
 				http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 				return

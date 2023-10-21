@@ -12,7 +12,11 @@ import (
 // NewRouter – функция инициализации роутера.
 func NewRouter(server *handlers.Server) chi.Router {
 	router := chi.NewRouter()
-	router.Use(middlewares.GzipMiddleware, middlewares.LoggerMiddleware)
+	router.Use(
+		middlewares.GzipMiddleware,
+		middlewares.LoggerMiddleware,
+		middlewares.IPCheckerMiddleware(server.Config.TrustedSubnet),
+	)
 	router.Post("/", server.CookieMiddleware(server.CreateLink))
 	router.Get("/{url_id}", server.CookieMiddleware(server.ResolveLink))
 	router.Get("/ping", server.CookieMiddleware(server.Ping))
@@ -21,6 +25,7 @@ func NewRouter(server *handlers.Server) chi.Router {
 	//nolint:goconst // it's ok
 	router.Get("/api/user/urls", server.CookieMiddleware(server.UserUrls))
 	router.Delete("/api/user/urls", server.CookieMiddleware(server.DeleteUserUrls))
+	router.Get("/api/internal/stats", server.CookieMiddleware(server.Stats))
 
 	router.Mount("/debug/", middleware.Profiler())
 

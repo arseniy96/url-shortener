@@ -32,7 +32,7 @@ func (s *Server) CookieMiddleware(h http.HandlerFunc) http.HandlerFunc {
 		path := r.URL.Path
 		cookie, err := r.Cookie(CookieName)
 		if err != nil {
-			newCookie, err := createNewCookie(s.storage)
+			newCookie, err := createNewCookie(s.Storage)
 			if err != nil {
 				logger.Log.Error(CreateCookieErrTxt, zap.Error(err))
 				http.Error(w, InternalBackendErrTxt, http.StatusInternalServerError)
@@ -46,14 +46,14 @@ func (s *Server) CookieMiddleware(h http.HandlerFunc) http.HandlerFunc {
 				Name:  CookieName,
 				Value: newCookie,
 			})
-		} else if !cookieValid(cookie.Value, s.storage) {
+		} else if !cookieValid(cookie.Value, s.Storage) {
 			if path == "/api/user/urls" {
 				logger.Log.Error(InvalidCookieErrTxt, zap.Error(err))
 				http.Error(w, "invalidCookie", http.StatusUnauthorized)
 				return
 			}
 
-			newCookie, err := createNewCookie(s.storage)
+			newCookie, err := createNewCookie(s.Storage)
 			if err != nil {
 				logger.Log.Error(CreateCookieErrTxt, zap.Error(err))
 				http.Error(w, InternalBackendErrTxt, http.StatusInternalServerError)

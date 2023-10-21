@@ -20,7 +20,7 @@ import (
 func (s *Server) ResolveLink(writer http.ResponseWriter, request *http.Request) {
 	urlID := chi.URLParam(request, "url_id")
 
-	url, err := s.storage.Get(urlID)
+	url, err := s.Storage.Get(urlID)
 	if err != nil {
 		if errors.Is(err, storage.ErrDeleted) {
 			http.Error(writer, "URL was deleted", http.StatusGone)

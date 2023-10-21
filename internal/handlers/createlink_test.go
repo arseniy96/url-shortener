@@ -120,8 +120,8 @@ func TestServer_CreateLink(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
 
 			s := Server{
-				storage:   tt.fields.storage,
-				generator: tt.fields.generator,
+				Storage:   tt.fields.storage,
+				Generator: tt.fields.generator,
 				Config:    tt.fields.config,
 			}
 
@@ -241,8 +241,8 @@ func TestServer_CreateLinkJSON(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(tt.body))
 
 			s := Server{
-				storage:   tt.fields.storage,
-				generator: tt.fields.generator,
+				Storage:   tt.fields.storage,
+				Generator: tt.fields.generator,
 				Config:    tt.fields.config,
 			}
 
@@ -345,6 +345,14 @@ func (s *TestStorage) HealthCheck() error {
 
 func (s *TestStorage) GetMode() int {
 	return s.mode
+}
+
+func (s *TestStorage) GetUsersCount(ctx context.Context) (int, error) {
+	return 1, nil
+}
+
+func (s *TestStorage) GetURLsCount(ctx context.Context) (int, error) {
+	return 1, nil
 }
 
 type TestGenerator struct{}

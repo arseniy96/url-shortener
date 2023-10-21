@@ -28,3 +28,4 @@ profile.cov
 cert/cert.pem
 cert/key.pem
 profile.cov
+cover.out.tmp

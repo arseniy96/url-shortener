@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package grpchandlers;
+
+option go_package = "internal/grpchandlers";
+
+service ShortenerProto {
+  rpc Ping(PingRequest) returns(PingResponse);
+  rpc CreateLink(CreateLinkRequest) returns(CreateLinkResponse);
+  rpc CreateLinksBatch(CreateLinksBatchRequest) returns(CreateLinksBatchResponse);
+  rpc ResolveLink(ResolveLinkRequest) returns(ResolveLinkResponse);
+  rpc UserUrls(UserUrlsRequest) returns(UserUrlsResponse);
+}
+
+// PingRequest - запрос на ping (empty)
+message PingRequest {}
+// PingResponse - ответ на ping
+message PingResponse {
+  string result = 1;
+}
+
+// CreateLinkRequest - запрос на сокращение ссылки
+message CreateLinkRequest {
+  // url - URL для сокращения
+  string url = 1;
+  // user_session - сессия пользователя (используется так же, как и cookie в HTTP)
+  string user_session = 2;
+}
+// CreateLinkResponse - ответ с сокращённой ссылкой
+message CreateLinkResponse {
+  string result = 1;
+}
+
+// CreateLinksBatchRequest - запрос для сокращения нескольких ссылок
+message CreateLinksBatchRequest {
+  repeated CreateLinksBatchRequestNested urls = 1;
+  // user_session - сессия пользователя (используется так же, как и cookie в HTTP)
+  string user_session = 2;
+}
+// CreateLinksBatchRequestNested - массив ссылок для сокращения
+message CreateLinksBatchRequestNested {
+  string correlation_id = 1;
+  string original_url = 2;
+}
+message CreateLinksBatchResponse {
+  repeated CreateLinksBatchResponseNested urls = 1;
+}
+message CreateLinksBatchResponseNested {
+  string correlation_id = 1;
+  string short_url = 2;
+}
+
+message ResolveLinkRequest {
+  string short_url = 1;
+}
+message ResolveLinkResponse {
+  string original_url = 1;
+}
+
+message UserUrlsRequest {
+  string user_session = 1;
+}
+message UserUrlsResponse {
+  repeated UserUrlsResponseNested urls = 1;
+}
+message UserUrlsResponseNested {
+  string short_url = 1;
+  string original_url = 2;
+}

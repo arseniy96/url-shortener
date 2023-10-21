@@ -15,12 +15,12 @@ import (
 // @Failure		 500 {object} object{} "Ошибка сервера"
 // @Router       /ping [get] .
 func (s *Server) Ping(writer http.ResponseWriter, request *http.Request) {
-	if s.storage.GetMode() != storage.DBMode {
+	if s.Storage.GetMode() != storage.DBMode {
 		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)
 		return
 	}
 
-	err := s.storage.HealthCheck()
+	err := s.Storage.HealthCheck()
 	if err != nil {
 		logger.Log.Error(err)
 		http.Error(writer, InternalBackendErrTxt, http.StatusInternalServerError)

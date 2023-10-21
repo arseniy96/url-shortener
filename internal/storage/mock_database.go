@@ -181,6 +181,36 @@ func (mr *MockDatabaseInterfaceMockRecorder) FindUserByID(arg0, arg1 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByID", reflect.TypeOf((*MockDatabaseInterface)(nil).FindUserByID), arg0, arg1)
 }
 
+// GetURLsCount mocks base method.
+func (m *MockDatabaseInterface) GetURLsCount(arg0 context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetURLsCount", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetURLsCount indicates an expected call of GetURLsCount.
+func (mr *MockDatabaseInterfaceMockRecorder) GetURLsCount(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetURLsCount", reflect.TypeOf((*MockDatabaseInterface)(nil).GetURLsCount), arg0)
+}
+
+// GetUsersCount mocks base method.
+func (m *MockDatabaseInterface) GetUsersCount(arg0 context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersCount", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersCount indicates an expected call of GetUsersCount.
+func (mr *MockDatabaseInterfaceMockRecorder) GetUsersCount(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersCount", reflect.TypeOf((*MockDatabaseInterface)(nil).GetUsersCount), arg0)
+}
+
 // HealthCheck mocks base method.
 func (m *MockDatabaseInterface) HealthCheck() error {
 	m.ctrl.T.Helper()

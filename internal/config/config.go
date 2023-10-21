@@ -26,6 +26,8 @@ type Options struct {
 	ConnectionData string `env:"DATABASE_DSN" json:"database_dsn"`
 	// ConfigPath – путь до файла с настройками
 	ConfigPath string `env:"CONFIG"`
+	// TrustedSubnet – разрешённая подсеть
+	TrustedSubnet string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 	// EnableHTTPS – HTTPS mode
 	EnableHTTPS bool `env:"ENABLE_HTTPS" json:"enable_https"`
 }
@@ -41,6 +43,7 @@ func InitConfig() (*Options, error) {
 	flag.StringVar(&options.ConnectionData, "d", "", "database connection data")
 	flag.BoolVar(&options.EnableHTTPS, "s", false, "HTTPS mode")
 	flag.StringVar(&options.ConfigPath, "c", "", "config path")
+	flag.StringVar(&options.TrustedSubnet, "t", "", "trusted subnet for GET stats")
 	flag.Parse()
 
 	err := env.Parse(options)
